@@ -1,0 +1,7 @@
+{
+  "name": "tv-digital",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {"start": "node server.js"},
+  "dependencies": {"express": "^4.21.2", "mercadopago": "^2.5.0"}
+}
