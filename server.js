@@ -34,11 +34,13 @@ const plans = {
     devices: 1,
     monthly: 7000
   },
+
   pareja: {
     name: 'Combo Pareja',
     devices: 2,
     monthly: 10000
   },
+
   familiar: {
     name: 'Combo Familiar',
     devices: 4,
@@ -53,8 +55,14 @@ const discounts = {
   12: 0.35
 };
 
+
+/* =========================
+   CREAR PREFERENCIA
+========================= */
+
 app.post('/api/create-preference', async (req, res) => {
   try {
+
     if (!ACCESS_TOKEN || !BASE_URL) {
       return res.status(500).json({
         error: 'Servidor no configurado'
@@ -88,15 +96,22 @@ app.post('/api/create-preference', async (req, res) => {
 
     const preference = new Preference(client);
 
+    /*
+      Guardamos los datos de la compra
+      para recuperarlos cuando Mercado Pago
+      nos avise que el pago fue realizado.
+    */
+
     const orderData = {
-      plan,
+      plan: plan,
       months: selectedMonths,
-      email,
-      total
+      email: email,
+      total: total
     };
 
     const result = await preference.create({
       body: {
+
         items: [
           {
             id: plan,
@@ -129,6 +144,7 @@ app.post('/api/create-preference', async (req, res) => {
     });
 
     if (!result || !result.init_point) {
+
       console.error(
         'Mercado Pago no devolvió init_point:',
         result
@@ -139,7 +155,9 @@ app.post('/api/create-preference', async (req, res) => {
       });
     }
 
-    console.log('Preferencia creada correctamente');
+    console.log(
+      'Preferencia creada correctamente'
+    );
 
     res.json({
       url: result.init_point
@@ -158,6 +176,11 @@ app.post('/api/create-preference', async (req, res) => {
   }
 });
 
+
+/* =========================
+   WEBHOOK MERCADO PAGO
+========================= */
+
 app.post('/api/webhook', async (req, res) => {
 
   console.log(
@@ -165,7 +188,10 @@ app.post('/api/webhook', async (req, res) => {
     JSON.stringify(req.body)
   );
 
-  // Respondemos rápido a Mercado Pago
+  /*
+    Respondemos inmediatamente a Mercado Pago.
+  */
+
   res.sendStatus(200);
 
   try {
@@ -178,47 +204,69 @@ app.post('/api/webhook', async (req, res) => {
       req.body?.type;
 
     if (!paymentId) {
-      console.log('Webhook sin ID de pago.');
+
+      console.log(
+        'Webhook sin ID de pago.'
+      );
+
       return;
     }
+
+    /*
+      Solo procesamos notificaciones
+      relacionadas con pagos.
+    */
 
     if (
       type &&
       type !== 'payment'
     ) {
+
       console.log(
         'Webhook ignorado. Tipo:',
         type
       );
+
       return;
     }
 
     if (!ACCESS_TOKEN) {
+
       console.error(
         'Falta MP_ACCESS_TOKEN'
       );
+
       return;
     }
 
     if (!RESEND_API_KEY || !resend) {
+
       console.error(
         'Falta RESEND_API_KEY'
       );
+
       return;
     }
 
     if (!ADMIN_EMAIL) {
+
       console.error(
         'Falta ADMIN_EMAIL'
       );
+
       return;
     }
 
-    // Consultar el pago directamente a Mercado Pago
+
+    /* =========================
+       CONSULTAR PAGO
+    ========================= */
+
     const response = await fetch(
       `https://api.mercadopago.com/v1/payments/${paymentId}`,
       {
         method: 'GET',
+
         headers: {
           Authorization: `Bearer ${ACCESS_TOKEN}`
         }
@@ -226,10 +274,12 @@ app.post('/api/webhook', async (req, res) => {
     );
 
     if (!response.ok) {
+
       console.error(
         'No se pudo consultar el pago:',
         response.status
       );
+
       return;
     }
 
@@ -240,22 +290,37 @@ app.post('/api/webhook', async (req, res) => {
       payment.status
     );
 
-    // Solo enviamos correo cuando realmente está aprobado
+
+    /*
+      SOLO continuamos si Mercado Pago
+      confirma que está aprobado.
+    */
+
     if (payment.status !== 'approved') {
+
       console.log(
-        'Pago todavía no aprobado. Estado:',
+        'Pago todavía no aprobado:',
         payment.status
       );
+
       return;
     }
+
+
+    /* =========================
+       RECUPERAR DATOS DEL CLIENTE
+    ========================= */
 
     let order = {};
 
     try {
+
       order = JSON.parse(
         payment.external_reference || '{}'
       );
-    } catch {
+
+    } catch (error) {
+
       console.log(
         'No se pudo interpretar external_reference'
       );
@@ -275,53 +340,178 @@ app.post('/api/webhook', async (req, res) => {
       order.months || '-';
 
     const total =
-      order.total || payment.transaction_amount || '-';
+      order.total ||
+      payment.transaction_amount ||
+      '-';
 
     const customerEmail =
       order.email ||
       payment.payer?.email ||
       'No disponible';
 
-    // Enviar correo al administrador
-    const emailResult =
+
+    /* =========================
+       CORREO PARA EL ADMINISTRADOR
+    ========================= */
+
+    const adminEmailResult =
       await resend.emails.send({
+
         from: 'TV Digital <onboarding@resend.dev>',
+
         to: [ADMIN_EMAIL],
+
         subject: 'Nuevo pago recibido - TV Digital',
+
         html: `
+
           <h2>Nuevo pago recibido</h2>
 
-          <p><strong>Cliente:</strong> ${customerEmail}</p>
-
-          <p><strong>Plan:</strong> ${planName}</p>
-
-          <p><strong>Dispositivos:</strong> ${devices}</p>
-
-          <p><strong>Duración:</strong> ${months} mes(es)</p>
-
-          <p><strong>Total:</strong> $${total} ARS</p>
-
-          <p><strong>ID de pago:</strong> ${payment.id}</p>
-
-          <p><strong>Estado:</strong> APROBADO</p>
+          <p>
+            Se recibió un nuevo pago aprobado.
+          </p>
 
           <hr>
 
-          <p>Este correo fue generado automáticamente por TV Digital.</p>
+          <p>
+            <strong>Cliente:</strong>
+            ${customerEmail}
+          </p>
+
+          <p>
+            <strong>Plan:</strong>
+            ${planName}
+          </p>
+
+          <p>
+            <strong>Dispositivos:</strong>
+            ${devices}
+          </p>
+
+          <p>
+            <strong>Duración:</strong>
+            ${months} mes(es)
+          </p>
+
+          <p>
+            <strong>Total:</strong>
+            $${total} ARS
+          </p>
+
+          <p>
+            <strong>ID de pago:</strong>
+            ${payment.id}
+          </p>
+
+          <p>
+            <strong>Estado:</strong>
+            APROBADO
+          </p>
+
+          <hr>
+
+          <p>
+            Este correo fue generado automáticamente
+            por TV Digital.
+          </p>
+
         `
       });
 
-    if (emailResult.error) {
+
+    if (adminEmailResult.error) {
+
       console.error(
-        'Error enviando correo:',
-        emailResult.error
+        'Error enviando correo al administrador:',
+        adminEmailResult.error
       );
-      return;
+
+    } else {
+
+      console.log(
+        'Correo enviado correctamente al administrador.'
+      );
     }
 
-    console.log(
-      'Correo de pago enviado correctamente.'
-    );
+
+    /* =========================
+       CORREO PARA EL CLIENTE
+    ========================= */
+
+    const customerEmailResult =
+      await resend.emails.send({
+
+        from: 'TV Digital <onboarding@resend.dev>',
+
+        to: [customerEmail],
+
+        subject: '¡Pago recibido! - TV Digital',
+
+        html: `
+
+          <h2>¡Gracias por tu compra!</h2>
+
+          <p>
+            Recibimos correctamente tu pago
+            de TV Digital.
+          </p>
+
+          <p>
+            Tu suscripción fue aprobada.
+          </p>
+
+          <hr>
+
+          <p>
+            <strong>Plan:</strong>
+            ${planName}
+          </p>
+
+          <p>
+            <strong>Dispositivos:</strong>
+            ${devices}
+          </p>
+
+          <p>
+            <strong>Duración:</strong>
+            ${months} mes(es)
+          </p>
+
+          <p>
+            <strong>Total:</strong>
+            $${total} ARS
+          </p>
+
+          <hr>
+
+          <p>
+            En breve te enviaremos tu
+            <strong>cuenta y contraseña de acceso</strong>
+            para que puedas ingresar al servicio.
+          </p>
+
+          <p>
+            Gracias por elegir TV Digital.
+          </p>
+
+        `
+      });
+
+
+    if (customerEmailResult.error) {
+
+      console.error(
+        'Error enviando correo al cliente:',
+        customerEmailResult.error
+      );
+
+    } else {
+
+      console.log(
+        'Correo enviado correctamente al cliente.'
+      );
+    }
+
 
   } catch (error) {
 
@@ -332,14 +522,28 @@ app.post('/api/webhook', async (req, res) => {
   }
 });
 
+
+/* =========================
+   HEALTH CHECK
+========================= */
+
 app.get('/health', (req, res) => {
+
   res.json({
     ok: true
   });
+
 });
 
+
+/* =========================
+   INICIAR SERVIDOR
+========================= */
+
 app.listen(PORT, () => {
+
   console.log(
     `TV Digital server listening on ${PORT}`
   );
+
 });
