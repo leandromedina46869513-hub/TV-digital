@@ -33,9 +33,9 @@ const PORT = process.env.PORT || 3000;
 
 const CONFIG = {
   precios: {
-    comun: 7000,
+    comun: 100,
     pareja: 10000,
-    familiar: 15000
+    familiar: 15500
   },
 
   descuentos: {
@@ -45,7 +45,7 @@ const CONFIG = {
     12: 0.35
   },
 
-  downloader: '6590042'
+  downloader: '6590043'
 };
 
 /* =====================================================
