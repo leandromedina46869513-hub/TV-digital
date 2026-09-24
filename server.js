@@ -18,6 +18,39 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
+
+/* =====================================================
+   CONFIGURACIÓN TV DIGITAL
+   ================================================
+
+   PARA CAMBIAR PRECIOS O DESCUENTOS,
+   SOLO MODIFICÁ ESTA PARTE.
+===================================================== */
+
+const CONFIG = {
+
+  precios: {
+    comun: 7000,
+    pareja: 10000,
+    familiar: 15000
+  },
+
+  descuentos: {
+    1: 0,
+    3: 0.10,
+    6: 0.20,
+    12: 0.35
+  },
+
+  downloader: '6590043'
+
+};
+
+
+/* =====================================================
+   VARIABLES DE RENDER
+===================================================== */
+
 const ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
 const BASE_URL = process.env.BASE_URL;
 
@@ -28,67 +61,107 @@ const resend = RESEND_API_KEY
   ? new Resend(RESEND_API_KEY)
   : null;
 
+
+/* =====================================================
+   PLANES
+===================================================== */
+
 const plans = {
+
   comun: {
     name: 'Común',
     devices: 1,
-    monthly: 7000
+    monthly: CONFIG.precios.comun
   },
 
   pareja: {
     name: 'Combo Pareja',
     devices: 2,
-    monthly: 10000
+    monthly: CONFIG.precios.pareja
   },
 
   familiar: {
     name: 'Combo Familiar',
     devices: 4,
-    monthly: 15000
+    monthly: CONFIG.precios.familiar
   }
+
 };
 
-const discounts = {
-  1: 0,
-  3: 0.10,
-  6: 0.20,
-  12: 0.35
-};
+const discounts = CONFIG.descuentos;
 
 
-/* =========================
-   CREAR PREFERENCIA
-========================= */
+/* =====================================================
+   CONFIGURACIÓN PARA LA PÁGINA
+===================================================== */
+
+app.get('/api/config', (req, res) => {
+
+  res.json({
+
+    precios: CONFIG.precios,
+
+    descuentos: CONFIG.descuentos,
+
+    downloader: CONFIG.downloader
+
+  });
+
+});
+
+
+/* =====================================================
+   CREAR PREFERENCIA DE MERCADO PAGO
+===================================================== */
 
 app.post('/api/create-preference', async (req, res) => {
+
   try {
 
     if (!ACCESS_TOKEN || !BASE_URL) {
+
       return res.status(500).json({
         error: 'Servidor no configurado'
       });
+
     }
 
-    const { plan, months, email } = req.body;
+    const {
+      plan,
+      months,
+      email
+    } = req.body;
 
     const selectedPlan = plans[plan];
+
     const selectedMonths = Number(months);
+
 
     if (
       !selectedPlan ||
       discounts[selectedMonths] === undefined ||
       !/^\S+@\S+\.\S+$/.test(email || '')
     ) {
+
       return res.status(400).json({
         error: 'Datos inválidos'
       });
+
     }
 
+
+    /* CALCULAR PRECIO */
+
     const total = Math.round(
+
       selectedPlan.monthly *
       selectedMonths *
       (1 - discounts[selectedMonths])
+
     );
+
+
+    /* CONECTAR CON MERCADO PAGO */
 
     const client = new MercadoPagoConfig({
       accessToken: ACCESS_TOKEN
@@ -96,52 +169,83 @@ app.post('/api/create-preference', async (req, res) => {
 
     const preference = new Preference(client);
 
+
     /*
-      Guardamos los datos de la compra
-      para recuperarlos cuando Mercado Pago
-      nos avise que el pago fue realizado.
+      DATOS QUE GUARDAMOS EN LA COMPRA
     */
 
     const orderData = {
+
       plan: plan,
+
       months: selectedMonths,
+
       email: email,
+
       total: total
+
     };
 
+
+    /* CREAR PREFERENCIA */
+
     const result = await preference.create({
+
       body: {
 
         items: [
+
           {
+
             id: plan,
+
             title: `TV Digital - ${selectedPlan.name}`,
-            description: `${selectedPlan.devices} dispositivo(s) - ${selectedMonths} mes(es)`,
+
+            description:
+              `${selectedPlan.devices} dispositivo(s) - ${selectedMonths} mes(es)`,
+
             quantity: 1,
+
             currency_id: 'ARS',
+
             unit_price: total
+
           }
+
         ],
 
         payer: {
           email: email
         },
 
-        external_reference: JSON.stringify(orderData),
+        external_reference:
+          JSON.stringify(orderData),
 
         back_urls: {
-          success: `${BASE_URL}/pago.html?estado=aprobado`,
-          pending: `${BASE_URL}/pago.html?estado=pendiente`,
-          failure: `${BASE_URL}/pago.html?estado=rechazado`
+
+          success:
+            `${BASE_URL}/pago.html?estado=aprobado`,
+
+          pending:
+            `${BASE_URL}/pago.html?estado=pendiente`,
+
+          failure:
+            `${BASE_URL}/pago.html?estado=rechazado`
+
         },
 
         auto_return: 'approved',
 
-        notification_url: `${BASE_URL}/api/webhook`,
+        notification_url:
+          `${BASE_URL}/api/webhook`,
 
-        statement_descriptor: 'TV DIGITAL'
+        statement_descriptor:
+          'TV DIGITAL'
+
       }
+
     });
+
 
     if (!result || !result.init_point) {
 
@@ -151,17 +255,26 @@ app.post('/api/create-preference', async (req, res) => {
       );
 
       return res.status(500).json({
-        error: 'Mercado Pago no devolvió un link de pago'
+
+        error:
+          'Mercado Pago no devolvió un link de pago'
+
       });
+
     }
+
 
     console.log(
       'Preferencia creada correctamente'
     );
 
+
     res.json({
+
       url: result.init_point
+
     });
+
 
   } catch (error) {
 
@@ -171,15 +284,20 @@ app.post('/api/create-preference', async (req, res) => {
     );
 
     res.status(500).json({
-      error: 'No se pudo crear el pago'
+
+      error:
+        'No se pudo crear el pago'
+
     });
+
   }
+
 });
 
 
-/* =========================
+/* =====================================================
    WEBHOOK MERCADO PAGO
-========================= */
+===================================================== */
 
 app.post('/api/webhook', async (req, res) => {
 
@@ -188,11 +306,13 @@ app.post('/api/webhook', async (req, res) => {
     JSON.stringify(req.body)
   );
 
+
   /*
     Respondemos inmediatamente a Mercado Pago.
   */
 
   res.sendStatus(200);
+
 
   try {
 
@@ -203,6 +323,7 @@ app.post('/api/webhook', async (req, res) => {
     const type =
       req.body?.type;
 
+
     if (!paymentId) {
 
       console.log(
@@ -210,11 +331,12 @@ app.post('/api/webhook', async (req, res) => {
       );
 
       return;
+
     }
 
+
     /*
-      Solo procesamos notificaciones
-      relacionadas con pagos.
+      Solo procesamos pagos.
     */
 
     if (
@@ -228,7 +350,9 @@ app.post('/api/webhook', async (req, res) => {
       );
 
       return;
+
     }
+
 
     if (!ACCESS_TOKEN) {
 
@@ -237,7 +361,9 @@ app.post('/api/webhook', async (req, res) => {
       );
 
       return;
+
     }
+
 
     if (!RESEND_API_KEY || !resend) {
 
@@ -246,7 +372,9 @@ app.post('/api/webhook', async (req, res) => {
       );
 
       return;
+
     }
+
 
     if (!ADMIN_EMAIL) {
 
@@ -255,23 +383,33 @@ app.post('/api/webhook', async (req, res) => {
       );
 
       return;
+
     }
 
 
-    /* =========================
+    /* =================================================
        CONSULTAR PAGO
-    ========================= */
+    ================================================= */
 
     const response = await fetch(
+
       `https://api.mercadopago.com/v1/payments/${paymentId}`,
+
       {
+
         method: 'GET',
 
         headers: {
-          Authorization: `Bearer ${ACCESS_TOKEN}`
+
+          Authorization:
+            `Bearer ${ACCESS_TOKEN}`
+
         }
+
       }
+
     );
+
 
     if (!response.ok) {
 
@@ -281,9 +419,13 @@ app.post('/api/webhook', async (req, res) => {
       );
 
       return;
+
     }
 
-    const payment = await response.json();
+
+    const payment =
+      await response.json();
+
 
     console.log(
       'Estado del pago:',
@@ -292,11 +434,12 @@ app.post('/api/webhook', async (req, res) => {
 
 
     /*
-      SOLO continuamos si Mercado Pago
-      confirma que está aprobado.
+      SOLO CONTINUAMOS SI ESTÁ APROBADO
     */
 
-    if (payment.status !== 'approved') {
+    if (
+      payment.status !== 'approved'
+    ) {
 
       console.log(
         'Pago todavía no aprobado:',
@@ -304,19 +447,23 @@ app.post('/api/webhook', async (req, res) => {
       );
 
       return;
+
     }
 
 
-    /* =========================
-       RECUPERAR DATOS DEL CLIENTE
-    ========================= */
+    /* =================================================
+       RECUPERAR DATOS DE LA COMPRA
+    ================================================= */
 
     let order = {};
 
     try {
 
       order = JSON.parse(
-        payment.external_reference || '{}'
+
+        payment.external_reference ||
+        '{}'
+
       );
 
     } catch (error) {
@@ -324,25 +471,36 @@ app.post('/api/webhook', async (req, res) => {
       console.log(
         'No se pudo interpretar external_reference'
       );
+
     }
 
-    const plan = plans[order.plan];
 
-    const planName = plan
-      ? plan.name
-      : 'Plan no identificado';
+    const plan =
+      plans[order.plan];
 
-    const devices = plan
-      ? plan.devices
-      : '-';
+
+    const planName =
+      plan
+        ? plan.name
+        : 'Plan no identificado';
+
+
+    const devices =
+      plan
+        ? plan.devices
+        : '-';
+
 
     const months =
-      order.months || '-';
+      order.months ||
+      '-';
+
 
     const total =
       order.total ||
       payment.transaction_amount ||
       '-';
+
 
     const customerEmail =
       order.email ||
@@ -350,18 +508,21 @@ app.post('/api/webhook', async (req, res) => {
       'No disponible';
 
 
-    /* =========================
-       CORREO PARA EL ADMINISTRADOR
-    ========================= */
+    /* =================================================
+       CORREO AL ADMINISTRADOR
+    ================================================= */
 
     const adminEmailResult =
       await resend.emails.send({
 
-        from: 'TV Digital <onboarding@resend.dev>',
+        from:
+          'TV Digital <onboarding@resend.dev>',
 
-        to: [ADMIN_EMAIL],
+        to:
+          [ADMIN_EMAIL],
 
-        subject: 'Nuevo pago recibido - TV Digital',
+        subject:
+          'Nuevo pago recibido - TV Digital',
 
         html: `
 
@@ -416,14 +577,18 @@ app.post('/api/webhook', async (req, res) => {
           </p>
 
         `
+
       });
 
 
     if (adminEmailResult.error) {
 
       console.error(
+
         'Error enviando correo al administrador:',
+
         adminEmailResult.error
+
       );
 
     } else {
@@ -431,21 +596,25 @@ app.post('/api/webhook', async (req, res) => {
       console.log(
         'Correo enviado correctamente al administrador.'
       );
+
     }
 
 
-    /* =========================
-       CORREO PARA EL CLIENTE
-    ========================= */
+    /* =================================================
+       CORREO AL CLIENTE
+    ================================================= */
 
     const customerEmailResult =
       await resend.emails.send({
 
-        from: 'TV Digital <onboarding@resend.dev>',
+        from:
+          'TV Digital <onboarding@resend.dev>',
 
-        to: [customerEmail],
+        to:
+          [customerEmail],
 
-        subject: '¡Pago recibido! - TV Digital',
+        subject:
+          '¡Pago recibido! - TV Digital',
 
         html: `
 
@@ -495,14 +664,18 @@ app.post('/api/webhook', async (req, res) => {
           </p>
 
         `
+
       });
 
 
     if (customerEmailResult.error) {
 
       console.error(
+
         'Error enviando correo al cliente:',
+
         customerEmailResult.error
+
       );
 
     } else {
@@ -510,6 +683,7 @@ app.post('/api/webhook', async (req, res) => {
       console.log(
         'Correo enviado correctamente al cliente.'
       );
+
     }
 
 
@@ -519,13 +693,15 @@ app.post('/api/webhook', async (req, res) => {
       'Error procesando webhook:',
       error
     );
+
   }
+
 });
 
 
-/* =========================
+/* =====================================================
    HEALTH CHECK
-========================= */
+===================================================== */
 
 app.get('/health', (req, res) => {
 
@@ -536,9 +712,9 @@ app.get('/health', (req, res) => {
 });
 
 
-/* =========================
+/* =====================================================
    INICIAR SERVIDOR
-========================= */
+===================================================== */
 
 app.listen(PORT, () => {
 
