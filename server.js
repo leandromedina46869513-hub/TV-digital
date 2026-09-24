@@ -33,7 +33,7 @@ const PORT = process.env.PORT || 3000;
 
 const CONFIG = {
   precios: {
-    comun: 100,
+    comun: 1,
     pareja: 10000,
     familiar: 15500
   },
