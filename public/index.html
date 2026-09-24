@@ -2,327 +2,462 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TV Digital</title>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
       margin: 0;
-      background: #071426;
-      color: #fff;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      color: #222;
     }
 
-    main {
-      max-width: 900px;
-      margin: auto;
-      padding: 24px;
-    }
-
-    .hero {
+    header {
+      background: #111827;
+      color: white;
       text-align: center;
-      padding: 25px 0;
+      padding: 25px 15px;
     }
 
-    .steps,
-    .plans {
-      display: grid;
-      gap: 14px;
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+    }
+
+    header p {
+      margin: 0;
+      color: #d1d5db;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 20px;
     }
 
     .steps {
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 3px 12px rgba(0,0,0,.08);
     }
 
-    .plans {
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    .steps h2 {
+      margin-top: 0;
     }
 
-    .card {
-      background: #10243e;
-      border-radius: 16px;
-      padding: 18px;
+    .steps ol {
+      padding-left: 22px;
+      line-height: 1.8;
     }
 
     .code {
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-align: center;
-      padding: 12px;
-      background: #06101f;
-      border-radius: 10px;
+      display: inline-block;
+      background: #111827;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 18px;
     }
 
-    a,
-    .buy {
-      display: inline-block;
-      background: #18a957;
-      color: white;
-      padding: 12px 18px;
-      border-radius: 10px;
-      text-decoration: none;
-      border: 0;
-      font-weight: 700;
+    .plans {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 3px 12px rgba(0,0,0,.08);
+    }
+
+    .card h3 {
+      margin-top: 0;
+      font-size: 23px;
     }
 
     .price {
       font-size: 28px;
-      font-weight: 700;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .card ul {
+      padding-left: 20px;
+      line-height: 1.7;
     }
 
     select,
     input {
       width: 100%;
-      box-sizing: border-box;
       padding: 12px;
-      margin: 7px 0 12px;
+      margin-top: 8px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
       border-radius: 8px;
-      border: 0;
-    }
-
-    .buy {
-      cursor: pointer;
-      width: 100%;
       font-size: 16px;
     }
 
-    .buy:disabled {
-      opacity: 0.6;
-      cursor: wait;
+    .total {
+      font-weight: bold;
+      margin: 10px 0;
+      font-size: 18px;
+    }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 8px;
+      background: #16a34a;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #15803d;
+    }
+
+    .note {
+      margin-top: 25px;
+      text-align: center;
+      background: white;
+      padding: 18px;
+      border-radius: 12px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 25px;
+      color: #666;
     }
   </style>
 </head>
 
 <body>
 
-<main>
+<header>
+  <h1>📺 TV Digital</h1>
+  <p>Canales, series, deportes y películas</p>
+</header>
 
-  <section class="hero">
-    <h1>TV Digital</h1>
-    <p>Todo tu entretenimiento en un solo lugar.</p>
-  </section>
+<div class="container">
 
-  <h2>¿Cómo empezar?</h2>
+  <div class="steps">
+    <h2>¿Cómo instalar?</h2>
 
-  <section class="steps">
+    <ol>
+      <li>
+        Descargá <b>Downloader</b> desde Google Play.
+        <br>
+        <a
+          href="https://play.google.com/store/apps/details?id=com.esaba.downloader"
+          target="_blank">
+          Descargar Downloader
+        </a>
+      </li>
 
+      <li>
+        Abrí Downloader e ingresá este código:
+        <br><br>
+        <span class="code" id="downloaderCode">Cargando...</span>
+      </li>
+
+      <li>
+        Instalá la aplicación.
+      </li>
+
+      <li>
+        Elegí uno de nuestros planes y realizá el pago.
+      </li>
+    </ol>
+  </div>
+
+  <div class="plans">
+
+    <!-- PLAN COMÚN -->
     <div class="card">
-      <b>1. Descargá Downloader</b>
-      <p>Instalalo desde Google Play.</p>
-
-      <a
-        href="https://play.google.com/store/apps/details?id=com.esaba.downloader"
-        target="_blank"
-        rel="noopener">
-        Descargar Downloader
-      </a>
-    </div>
-
-    <div class="card">
-      <b>2. Colocá el código</b>
-      <p>Dentro de Downloader ingresá:</p>
-      <div class="code">6590043</div>
-    </div>
-
-    <div class="card">
-      <b>3. Instalá la app</b>
-      <p>
-        Seguí las instrucciones que aparecen en pantalla
-        y abrí la aplicación.
-      </p>
-    </div>
-
-    <div class="card">
-      <b>4. Elegí tu plan</b>
-      <p>
-        Seleccioná la cantidad de dispositivos
-        y la duración.
-      </p>
-    </div>
-
-  </section>
-
-  <h2>Elegí tu plan</h2>
-
-  <section class="plans">
-
-    <!-- COMÚN -->
-
-    <div class="card">
-
       <h3>Común</h3>
 
       <p>1 dispositivo</p>
 
-      <div class="price">$7.000/mes</div>
+      <div class="price" id="price1">Cargando...</div>
 
-      <p>TV · Series · Deportes · Películas</p>
+      <ul>
+        <li>Canales</li>
+        <li>Series</li>
+        <li>Deportes</li>
+        <li>Películas</li>
+      </ul>
+
+      <label>Duración</label>
 
       <select id="m1" onchange="calc(1)">
         <option value="1">1 mes</option>
-        <option value="3">3 meses — 10% OFF</option>
-        <option value="6">6 meses — 20% OFF</option>
-        <option value="12">12 meses — 35% OFF</option>
+        <option value="3">3 meses</option>
+        <option value="6">6 meses</option>
+        <option value="12">12 meses</option>
       </select>
 
-      <p id="t1"></p>
+      <div class="total" id="t1">Total: $0</div>
 
       <input
-        id="e1"
         type="email"
-        autocomplete="email"
+        id="e1"
         placeholder="Tu Gmail">
 
-      <button
-        class="buy"
-        onclick="buy('comun',1)">
+      <button onclick="buy('comun',1)">
         Comprar
       </button>
-
     </div>
 
-    <!-- PAREJA -->
 
+    <!-- PLAN PAREJA -->
     <div class="card">
-
       <h3>Combo Pareja</h3>
 
       <p>2 dispositivos</p>
 
-      <div class="price">$10.000/mes</div>
+      <div class="price" id="price2">Cargando...</div>
 
-      <p>TV · Series · Deportes · Películas</p>
+      <ul>
+        <li>Canales</li>
+        <li>Series</li>
+        <li>Deportes</li>
+        <li>Películas</li>
+      </ul>
+
+      <label>Duración</label>
 
       <select id="m2" onchange="calc(2)">
         <option value="1">1 mes</option>
-        <option value="3">3 meses — 10% OFF</option>
-        <option value="6">6 meses — 20% OFF</option>
-        <option value="12">12 meses — 35% OFF</option>
+        <option value="3">3 meses</option>
+        <option value="6">6 meses</option>
+        <option value="12">12 meses</option>
       </select>
 
-      <p id="t2"></p>
+      <div class="total" id="t2">Total: $0</div>
 
       <input
-        id="e2"
         type="email"
-        autocomplete="email"
+        id="e2"
         placeholder="Tu Gmail">
 
-      <button
-        class="buy"
-        onclick="buy('pareja',2)">
+      <button onclick="buy('pareja',2)">
         Comprar
       </button>
-
     </div>
 
-    <!-- FAMILIAR -->
 
+    <!-- PLAN FAMILIAR -->
     <div class="card">
-
       <h3>Combo Familiar</h3>
 
       <p>4 dispositivos</p>
 
-      <div class="price">$15.000/mes</div>
+      <div class="price" id="price3">Cargando...</div>
 
-      <p>TV · Series · Deportes · Películas</p>
+      <ul>
+        <li>Canales</li>
+        <li>Series</li>
+        <li>Deportes</li>
+        <li>Películas</li>
+      </ul>
+
+      <label>Duración</label>
 
       <select id="m3" onchange="calc(3)">
         <option value="1">1 mes</option>
-        <option value="3">3 meses — 10% OFF</option>
-        <option value="6">6 meses — 20% OFF</option>
-        <option value="12">12 meses — 35% OFF</option>
+        <option value="3">3 meses</option>
+        <option value="6">6 meses</option>
+        <option value="12">12 meses</option>
       </select>
 
-      <p id="t3"></p>
+      <div class="total" id="t3">Total: $0</div>
 
       <input
-        id="e3"
         type="email"
-        autocomplete="email"
+        id="e3"
         placeholder="Tu Gmail">
 
-      <button
-        class="buy"
-        onclick="buy('familiar',3)">
+      <button onclick="buy('familiar',3)">
         Comprar
       </button>
-
     </div>
 
-  </section>
+  </div>
 
-</main>
+  <div class="note">
+    <b>📩 Después del pago</b>
+    <p>
+      Una vez confirmado el pago, recibirás un Gmail
+      con la información de tu suscripción.
+      Luego te enviaremos tu cuenta y contraseña.
+    </p>
+  </div>
+
+</div>
+
+<footer>
+  TV Digital
+</footer>
+
 
 <script>
 
-const prices = {
-  1: 7000,
-  2: 10000,
-  3: 15000
-};
-
-const discounts = {
-  1: 0,
-  3: 0.10,
-  6: 0.20,
-  12: 0.35
-};
+let config = null;
 
 function money(n) {
   return '$' + Math.round(n).toLocaleString('es-AR');
 }
 
+
+async function loadConfig() {
+
+  try {
+
+    const response = await fetch('/api/config');
+
+    if (!response.ok) {
+      throw new Error('No se pudo cargar la configuración');
+    }
+
+    config = await response.json();
+
+    // Código Downloader
+    document.getElementById('downloaderCode').textContent =
+      config.downloader;
+
+    // Precios
+    document.getElementById('price1').textContent =
+      money(config.precios.comun) + ' / mes';
+
+    document.getElementById('price2').textContent =
+      money(config.precios.pareja) + ' / mes';
+
+    document.getElementById('price3').textContent =
+      money(config.precios.familiar) + ' / mes';
+
+    // Actualizar descuentos
+    updateOptions('m1');
+    updateOptions('m2');
+    updateOptions('m3');
+
+    calc(1);
+    calc(2);
+    calc(3);
+
+  } catch (error) {
+
+    console.error(error);
+
+    document.getElementById('downloaderCode').textContent =
+      'Error';
+
+  }
+}
+
+
+function updateOptions(id) {
+
+  const select = document.getElementById(id);
+
+  const months = [1, 3, 6, 12];
+
+  months.forEach(month => {
+
+    const option = select.querySelector(
+      `option[value="${month}"]`
+    );
+
+    if (!option) return;
+
+    const discount =
+      config.descuentos[month] || 0;
+
+    if (month === 1 || discount === 0) {
+
+      option.textContent =
+        `${month} mes${month > 1 ? 'es' : ''}`;
+
+    } else {
+
+      option.textContent =
+        `${month} meses - ${discount * 100}% descuento`;
+
+    }
+
+  });
+
+}
+
+
 function calc(i) {
 
-  const months =
+  if (!config) return;
+
+  const m =
     Number(document.getElementById('m' + i).value);
 
+  let price;
+
+  if (i === 1) {
+    price = config.precios.comun;
+  }
+
+  if (i === 2) {
+    price = config.precios.pareja;
+  }
+
+  if (i === 3) {
+    price = config.precios.familiar;
+  }
+
+  const discount =
+    config.descuentos[m] || 0;
+
   const total =
-    prices[i] *
-    months *
-    (1 - discounts[months]);
+    price * m * (1 - discount);
 
   document.getElementById('t' + i).textContent =
     'Total: ' + money(total);
 }
 
-for (let i = 1; i <= 3; i++) {
-  calc(i);
-}
 
 async function buy(plan, i) {
 
   const email =
     document.getElementById('e' + i).value.trim();
 
-  if (!/^\S+@\S+\.\S+$/.test(email)) {
-
-    alert('Ingresá un Gmail válido.');
-
-    return;
-  }
-
   const months =
     Number(document.getElementById('m' + i).value);
 
-  const buttons =
-    document.querySelectorAll('.buy');
+  if (!email) {
+    alert('Ingresá tu Gmail.');
+    return;
+  }
 
-  const button =
-    buttons[i - 1];
-
-  button.disabled = true;
-  button.textContent = 'Creando pago...';
+  if (!email.includes('@')) {
+    alert('Ingresá un Gmail válido.');
+    return;
+  }
 
   try {
 
-    const response =
-      await fetch('/api/create-preference', {
-
+    const response = await fetch(
+      '/api/create-preference',
+      {
         method: 'POST',
 
         headers: {
@@ -330,41 +465,52 @@ async function buy(plan, i) {
         },
 
         body: JSON.stringify({
-          plan: plan,
-          months: months,
-          email: email
+          plan,
+          months,
+          email
         })
+      }
+    );
 
-      });
-
-    const data =
-      await response.json();
+    const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(
-        data.error || 'No se pudo crear el pago'
+
+      alert(
+        data.error ||
+        'No se pudo crear el pago.'
       );
+
+      return;
     }
 
-    if (!data.url) {
-      throw new Error(
-        'Mercado Pago no devolvió el enlace de pago'
-      );
-    }
+    if (data.init_point) {
 
-    // Abrir un checkout NUEVO
-    window.location.assign(data.url);
+      window.location.href =
+        data.init_point;
+
+    } else {
+
+      alert(
+        'Mercado Pago no devolvió el enlace de pago.'
+      );
+
+    }
 
   } catch (error) {
 
     console.error(error);
 
-    alert(error.message);
+    alert(
+      'Ocurrió un error. Intentá nuevamente.'
+    );
 
-    button.disabled = false;
-    button.textContent = 'Comprar';
   }
+
 }
+
+
+loadConfig();
 
 </script>
 
