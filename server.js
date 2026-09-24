@@ -21,20 +21,17 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-
 /* =====================================================
    PUERTO
 ===================================================== */
 
 const PORT = process.env.PORT || 3000;
 
-
 /* =====================================================
    CONFIGURACIÓN TV DIGITAL
 ===================================================== */
 
 const CONFIG = {
-
   precios: {
     comun: 7000,
     pareja: 10000,
@@ -49,9 +46,7 @@ const CONFIG = {
   },
 
   downloader: '6590043'
-
 };
-
 
 /* =====================================================
    VARIABLES DE RENDER
@@ -67,13 +62,11 @@ const resend = RESEND_API_KEY
   ? new Resend(RESEND_API_KEY)
   : null;
 
-
 /* =====================================================
    PLANES
 ===================================================== */
 
 const plans = {
-
   comun: {
     name: 'Común',
     devices: 1,
@@ -91,41 +84,33 @@ const plans = {
     devices: 4,
     monthly: CONFIG.precios.familiar
   }
-
 };
 
 const discounts = CONFIG.descuentos;
-
 
 /* =====================================================
    CONFIGURACIÓN PARA LA PÁGINA
 ===================================================== */
 
 app.get('/api/config', (req, res) => {
-
   res.json({
     precios: CONFIG.precios,
     descuentos: CONFIG.descuentos,
     downloader: CONFIG.downloader
   });
-
 });
-
 
 /* =====================================================
    CREAR PREFERENCIA DE MERCADO PAGO
 ===================================================== */
 
 app.post('/api/create-preference', async (req, res) => {
-
   try {
 
     if (!ACCESS_TOKEN || !BASE_URL) {
-
       return res.status(500).json({
         error: 'Servidor no configurado'
       });
-
     }
 
     const {
@@ -137,7 +122,6 @@ app.post('/api/create-preference', async (req, res) => {
     const selectedPlan = plans[plan];
     const selectedMonths = Number(months);
 
-
     /* VALIDAR DATOS */
 
     if (
@@ -145,13 +129,10 @@ app.post('/api/create-preference', async (req, res) => {
       discounts[selectedMonths] === undefined ||
       !/^\S+@\S+\.\S+$/.test(email || '')
     ) {
-
       return res.status(400).json({
         error: 'Datos inválidos'
       });
-
     }
-
 
     /* CALCULAR PRECIO */
 
@@ -161,7 +142,6 @@ app.post('/api/create-preference', async (req, res) => {
       (1 - discounts[selectedMonths])
     );
 
-
     /* CONECTAR CON MERCADO PAGO */
 
     const client = new MercadoPagoConfig({
@@ -169,7 +149,6 @@ app.post('/api/create-preference', async (req, res) => {
     });
 
     const preference = new Preference(client);
-
 
     /* DATOS DE LA COMPRA */
 
@@ -180,15 +159,11 @@ app.post('/api/create-preference', async (req, res) => {
       total: total
     };
 
-
     /* CREAR PREFERENCIA */
 
     const result = await preference.create({
-
       body: {
-
         items: [
-
           {
             id: plan,
 
@@ -204,7 +179,6 @@ app.post('/api/create-preference', async (req, res) => {
 
             unit_price: total
           }
-
         ],
 
         payer: {
@@ -215,7 +189,6 @@ app.post('/api/create-preference', async (req, res) => {
           JSON.stringify(orderData),
 
         back_urls: {
-
           success:
             `${BASE_URL}/pago.html?estado=aprobado`,
 
@@ -224,7 +197,6 @@ app.post('/api/create-preference', async (req, res) => {
 
           failure:
             `${BASE_URL}/pago.html?estado=rechazado`
-
         },
 
         auto_return: 'approved',
@@ -234,11 +206,8 @@ app.post('/api/create-preference', async (req, res) => {
 
         statement_descriptor:
           'TV DIGITAL'
-
       }
-
     });
-
 
     /* VERIFICAR RESPUESTA */
 
@@ -253,24 +222,21 @@ app.post('/api/create-preference', async (req, res) => {
         error:
           'Mercado Pago no devolvió un link de pago'
       });
-
     }
-
 
     console.log(
       'Preferencia creada correctamente'
     );
 
-
     /*
-      IMPORTANTE:
-      El index.html espera "url".
+      ENVIAMOS LOS DOS NOMBRES DEL ENLACE
+      PARA ASEGURAR COMPATIBILIDAD CON LA PÁGINA.
     */
 
     return res.json({
-      url: result.init_point
+      url: result.init_point,
+      init_point: result.init_point
     });
-
 
   } catch (error) {
 
@@ -283,11 +249,8 @@ app.post('/api/create-preference', async (req, res) => {
       error:
         'No se pudo crear el pago'
     });
-
   }
-
 });
-
 
 /* =====================================================
    WEBHOOK MERCADO PAGO
@@ -300,11 +263,9 @@ app.post('/api/webhook', async (req, res) => {
     JSON.stringify(req.body)
   );
 
-
   /* RESPONDER RÁPIDAMENTE A MERCADO PAGO */
 
   res.sendStatus(200);
-
 
   try {
 
@@ -315,7 +276,6 @@ app.post('/api/webhook', async (req, res) => {
     const type =
       req.body?.type;
 
-
     if (!paymentId) {
 
       console.log(
@@ -323,9 +283,7 @@ app.post('/api/webhook', async (req, res) => {
       );
 
       return;
-
     }
-
 
     /* SOLO PROCESAR PAGOS */
 
@@ -340,9 +298,7 @@ app.post('/api/webhook', async (req, res) => {
       );
 
       return;
-
     }
-
 
     if (!ACCESS_TOKEN) {
 
@@ -351,9 +307,7 @@ app.post('/api/webhook', async (req, res) => {
       );
 
       return;
-
     }
-
 
     if (!RESEND_API_KEY || !resend) {
 
@@ -362,9 +316,7 @@ app.post('/api/webhook', async (req, res) => {
       );
 
       return;
-
     }
-
 
     if (!ADMIN_EMAIL) {
 
@@ -373,33 +325,23 @@ app.post('/api/webhook', async (req, res) => {
       );
 
       return;
-
     }
-
 
     /* =================================================
        CONSULTAR PAGO EN MERCADO PAGO
     ================================================= */
 
     const response = await fetch(
-
       `https://api.mercadopago.com/v1/payments/${paymentId}`,
-
       {
-
         method: 'GET',
 
         headers: {
-
           Authorization:
             `Bearer ${ACCESS_TOKEN}`
-
         }
-
       }
-
     );
-
 
     if (!response.ok) {
 
@@ -409,19 +351,15 @@ app.post('/api/webhook', async (req, res) => {
       );
 
       return;
-
     }
-
 
     const payment =
       await response.json();
-
 
     console.log(
       'Estado del pago:',
       payment.status
     );
-
 
     /* SOLO PAGOS APROBADOS */
 
@@ -435,9 +373,7 @@ app.post('/api/webhook', async (req, res) => {
       );
 
       return;
-
     }
-
 
     /* =================================================
        RECUPERAR DATOS DE LA COMPRA
@@ -456,9 +392,7 @@ app.post('/api/webhook', async (req, res) => {
       console.log(
         'No se pudo interpretar external_reference'
       );
-
     }
-
 
     const plan =
       plans[order.plan];
@@ -487,7 +421,6 @@ app.post('/api/webhook', async (req, res) => {
       payment.payer?.email ||
       'No disponible';
 
-
     /* =================================================
        CORREO AL ADMINISTRADOR
     ================================================= */
@@ -505,7 +438,6 @@ app.post('/api/webhook', async (req, res) => {
           'Nuevo pago recibido - TV Digital',
 
         html: `
-
           <h2>Nuevo pago recibido</h2>
 
           <p>
@@ -555,11 +487,8 @@ app.post('/api/webhook', async (req, res) => {
             Este correo fue generado automáticamente
             por TV Digital.
           </p>
-
         `
-
       });
-
 
     if (adminEmailResult.error) {
 
@@ -573,9 +502,7 @@ app.post('/api/webhook', async (req, res) => {
       console.log(
         'Correo enviado correctamente al administrador.'
       );
-
     }
-
 
     /* =================================================
        CORREO AL CLIENTE
@@ -594,7 +521,6 @@ app.post('/api/webhook', async (req, res) => {
           '¡Pago recibido! - TV Digital',
 
         html: `
-
           <h2>¡Gracias por tu compra!</h2>
 
           <p>
@@ -639,11 +565,8 @@ app.post('/api/webhook', async (req, res) => {
           <p>
             Gracias por elegir TV Digital.
           </p>
-
         `
-
       });
-
 
     if (customerEmailResult.error) {
 
@@ -657,9 +580,7 @@ app.post('/api/webhook', async (req, res) => {
       console.log(
         'Correo enviado correctamente al cliente.'
       );
-
     }
-
 
   } catch (error) {
 
@@ -667,11 +588,8 @@ app.post('/api/webhook', async (req, res) => {
       'Error procesando webhook:',
       error
     );
-
   }
-
 });
-
 
 /* =====================================================
    HEALTH CHECK
@@ -684,7 +602,6 @@ app.get('/health', (req, res) => {
   });
 
 });
-
 
 /* =====================================================
    INICIAR SERVIDOR
