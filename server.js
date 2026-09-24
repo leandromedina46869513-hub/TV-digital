@@ -1,534 +1,699 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TV Digital</title>
-
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      color: #222;
-    }
-
-    header {
-      background: #111827;
-      color: white;
-      text-align: center;
-      padding: 25px 15px;
-    }
-
-    header h1 {
-      margin: 0 0 8px;
-      font-size: 30px;
-    }
-
-    header p {
-      margin: 0;
-      color: #d1d5db;
-    }
-
-    .container {
-      max-width: 1000px;
-      margin: auto;
-      padding: 20px;
-    }
-
-    .steps {
-      background: white;
-      border-radius: 15px;
-      padding: 20px;
-      margin-bottom: 25px;
-      box-shadow: 0 3px 12px rgba(0,0,0,.08);
-    }
-
-    .steps h2 {
-      margin-top: 0;
-    }
-
-    .steps ol {
-      padding-left: 22px;
-      line-height: 1.8;
-    }
-
-    .code {
-      display: inline-block;
-      background: #111827;
-      color: white;
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 18px;
-    }
-
-    .plans {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-    }
-
-    .card {
-      background: white;
-      border-radius: 15px;
-      padding: 20px;
-      box-shadow: 0 3px 12px rgba(0,0,0,.08);
-    }
-
-    .card h3 {
-      margin-top: 0;
-      font-size: 23px;
-    }
-
-    .price {
-      font-size: 28px;
-      font-weight: bold;
-      margin: 10px 0;
-    }
-
-    .card ul {
-      padding-left: 20px;
-      line-height: 1.7;
-    }
-
-    select,
-    input {
-      width: 100%;
-      padding: 12px;
-      margin-top: 8px;
-      margin-bottom: 12px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-
-    .total {
-      font-weight: bold;
-      margin: 10px 0;
-      font-size: 18px;
-    }
-
-    button {
-      width: 100%;
-      padding: 13px;
-      border: none;
-      border-radius: 8px;
-      background: #16a34a;
-      color: white;
-      font-size: 17px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #15803d;
-    }
-
-    .note {
-      margin-top: 25px;
-      text-align: center;
-      background: white;
-      padding: 18px;
-      border-radius: 12px;
-    }
-
-    footer {
-      text-align: center;
-      padding: 25px;
-      color: #666;
-    }
-  </style>
-</head>
-
-<body>
-
-<header>
-  <h1>📺 TV Digital</h1>
-  <p>Canales, series, deportes y películas</p>
-</header>
-
-<div class="container">
-
-  <div class="steps">
-    <h2>¿Cómo instalar?</h2>
-
-    <ol>
-      <li>
-        Descargá <b>Downloader</b> desde Google Play.
-        <br>
-        <a
-          href="https://play.google.com/store/apps/details?id=com.esaba.downloader"
-          target="_blank">
-          Descargar Downloader
-        </a>
-      </li>
-
-      <li>
-        Abrí Downloader e ingresá este código:
-        <br><br>
-        <span class="code" id="downloaderCode">Cargando...</span>
-      </li>
-
-      <li>
-        Instalá la aplicación.
-      </li>
-
-      <li>
-        Elegí uno de nuestros planes y realizá el pago.
-      </li>
-    </ol>
-  </div>
-
-  <div class="plans">
-
-    <div class="card">
-      <h3>Común</h3>
-
-      <p>1 dispositivo</p>
-
-      <div class="price" id="price1">Cargando...</div>
-
-      <ul>
-        <li>Canales</li>
-        <li>Series</li>
-        <li>Deportes</li>
-        <li>Películas</li>
-      </ul>
-
-      <label>Duración</label>
-
-      <select id="m1" onchange="calc(1)">
-        <option value="1">1 mes</option>
-        <option value="3">3 meses</option>
-        <option value="6">6 meses</option>
-        <option value="12">12 meses</option>
-      </select>
-
-      <div class="total" id="t1">Total: $0</div>
-
-      <input
-        type="email"
-        id="e1"
-        placeholder="Tu Gmail">
-
-      <button onclick="buy('comun',1)">
-        Comprar
-      </button>
-    </div>
-
-
-    <div class="card">
-      <h3>Combo Pareja</h3>
-
-      <p>2 dispositivos</p>
-
-      <div class="price" id="price2">Cargando...</div>
-
-      <ul>
-        <li>Canales</li>
-        <li>Series</li>
-        <li>Deportes</li>
-        <li>Películas</li>
-      </ul>
-
-      <label>Duración</label>
-
-      <select id="m2" onchange="calc(2)">
-        <option value="1">1 mes</option>
-        <option value="3">3 meses</option>
-        <option value="6">6 meses</option>
-        <option value="12">12 meses</option>
-      </select>
-
-      <div class="total" id="t2">Total: $0</div>
-
-      <input
-        type="email"
-        id="e2"
-        placeholder="Tu Gmail">
-
-      <button onclick="buy('pareja',2)">
-        Comprar
-      </button>
-    </div>
-
-
-    <div class="card">
-      <h3>Combo Familiar</h3>
-
-      <p>4 dispositivos</p>
-
-      <div class="price" id="price3">Cargando...</div>
-
-      <ul>
-        <li>Canales</li>
-        <li>Series</li>
-        <li>Deportes</li>
-        <li>Películas</li>
-      </ul>
-
-      <label>Duración</label>
-
-      <select id="m3" onchange="calc(3)">
-        <option value="1">1 mes</option>
-        <option value="3">3 meses</option>
-        <option value="6">6 meses</option>
-        <option value="12">12 meses</option>
-      </select>
-
-      <div class="total" id="t3">Total: $0</div>
-
-      <input
-        type="email"
-        id="e3"
-        placeholder="Tu Gmail">
-
-      <button onclick="buy('familiar',3)">
-        Comprar
-      </button>
-    </div>
-
-  </div>
-
-  <div class="note">
-    <b>📩 Después del pago</b>
-
-    <p>
-      Una vez confirmado el pago, recibirás un Gmail
-      con la información de tu suscripción.
-      Luego te enviaremos tu cuenta y contraseña.
-    </p>
-  </div>
-
-</div>
-
-<footer>
-  TV Digital
-</footer>
-
-
-<script>
-
-let config = null;
-
-
-function money(n) {
-  return '$' + Math.round(n).toLocaleString('es-AR');
-}
-
-
-async function loadConfig() {
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { MercadoPagoConfig, Preference } from 'mercadopago';
+import { Resend } from 'resend';
+
+const app = express();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use(express.json());
+
+/* =====================================================
+   ARCHIVOS DE LA PÁGINA
+===================================================== */
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+
+/* =====================================================
+   PUERTO
+===================================================== */
+
+const PORT = process.env.PORT || 3000;
+
+
+/* =====================================================
+   CONFIGURACIÓN TV DIGITAL
+===================================================== */
+
+const CONFIG = {
+
+  precios: {
+    comun: 7000,
+    pareja: 10000,
+    familiar: 15000
+  },
+
+  descuentos: {
+    1: 0,
+    3: 0.10,
+    6: 0.20,
+    12: 0.35
+  },
+
+  downloader: '6590043'
+
+};
+
+
+/* =====================================================
+   VARIABLES DE RENDER
+===================================================== */
+
+const ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
+const BASE_URL = process.env.BASE_URL;
+
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+
+const resend = RESEND_API_KEY
+  ? new Resend(RESEND_API_KEY)
+  : null;
+
+
+/* =====================================================
+   PLANES
+===================================================== */
+
+const plans = {
+
+  comun: {
+    name: 'Común',
+    devices: 1,
+    monthly: CONFIG.precios.comun
+  },
+
+  pareja: {
+    name: 'Combo Pareja',
+    devices: 2,
+    monthly: CONFIG.precios.pareja
+  },
+
+  familiar: {
+    name: 'Combo Familiar',
+    devices: 4,
+    monthly: CONFIG.precios.familiar
+  }
+
+};
+
+const discounts = CONFIG.descuentos;
+
+
+/* =====================================================
+   CONFIGURACIÓN PARA LA PÁGINA
+===================================================== */
+
+app.get('/api/config', (req, res) => {
+
+  res.json({
+    precios: CONFIG.precios,
+    descuentos: CONFIG.descuentos,
+    downloader: CONFIG.downloader
+  });
+
+});
+
+
+/* =====================================================
+   CREAR PREFERENCIA DE MERCADO PAGO
+===================================================== */
+
+app.post('/api/create-preference', async (req, res) => {
 
   try {
 
-    const response = await fetch('/api/config');
+    if (!ACCESS_TOKEN || !BASE_URL) {
 
-    if (!response.ok) {
-      throw new Error('No se pudo cargar la configuración');
+      return res.status(500).json({
+        error: 'Servidor no configurado'
+      });
+
     }
 
-    config = await response.json();
+    const {
+      plan,
+      months,
+      email
+    } = req.body;
 
-    document.getElementById('downloaderCode').textContent =
-      config.downloader;
+    const selectedPlan = plans[plan];
+    const selectedMonths = Number(months);
 
-    document.getElementById('price1').textContent =
-      money(config.precios.comun) + ' / mes';
 
-    document.getElementById('price2').textContent =
-      money(config.precios.pareja) + ' / mes';
+    /* VALIDAR DATOS */
 
-    document.getElementById('price3').textContent =
-      money(config.precios.familiar) + ' / mes';
+    if (
+      !selectedPlan ||
+      discounts[selectedMonths] === undefined ||
+      !/^\S+@\S+\.\S+$/.test(email || '')
+    ) {
 
-    updateOptions('m1');
-    updateOptions('m2');
-    updateOptions('m3');
+      return res.status(400).json({
+        error: 'Datos inválidos'
+      });
 
-    calc(1);
-    calc(2);
-    calc(3);
+    }
+
+
+    /* CALCULAR PRECIO */
+
+    const total = Math.round(
+      selectedPlan.monthly *
+      selectedMonths *
+      (1 - discounts[selectedMonths])
+    );
+
+
+    /* CONECTAR CON MERCADO PAGO */
+
+    const client = new MercadoPagoConfig({
+      accessToken: ACCESS_TOKEN
+    });
+
+    const preference = new Preference(client);
+
+
+    /* DATOS DE LA COMPRA */
+
+    const orderData = {
+      plan: plan,
+      months: selectedMonths,
+      email: email,
+      total: total
+    };
+
+
+    /* CREAR PREFERENCIA */
+
+    const result = await preference.create({
+
+      body: {
+
+        items: [
+
+          {
+            id: plan,
+
+            title:
+              `TV Digital - ${selectedPlan.name}`,
+
+            description:
+              `${selectedPlan.devices} dispositivo(s) - ${selectedMonths} mes(es)`,
+
+            quantity: 1,
+
+            currency_id: 'ARS',
+
+            unit_price: total
+          }
+
+        ],
+
+        payer: {
+          email: email
+        },
+
+        external_reference:
+          JSON.stringify(orderData),
+
+        back_urls: {
+
+          success:
+            `${BASE_URL}/pago.html?estado=aprobado`,
+
+          pending:
+            `${BASE_URL}/pago.html?estado=pendiente`,
+
+          failure:
+            `${BASE_URL}/pago.html?estado=rechazado`
+
+        },
+
+        auto_return: 'approved',
+
+        notification_url:
+          `${BASE_URL}/api/webhook`,
+
+        statement_descriptor:
+          'TV DIGITAL'
+
+      }
+
+    });
+
+
+    /* VERIFICAR RESPUESTA */
+
+    if (!result || !result.init_point) {
+
+      console.error(
+        'Mercado Pago no devolvió init_point:',
+        result
+      );
+
+      return res.status(500).json({
+        error:
+          'Mercado Pago no devolvió un link de pago'
+      });
+
+    }
+
+
+    console.log(
+      'Preferencia creada correctamente'
+    );
+
+
+    /*
+      IMPORTANTE:
+      El index.html espera "url".
+    */
+
+    return res.json({
+      url: result.init_point
+    });
+
 
   } catch (error) {
 
-    console.error(error);
-
-    document.getElementById('downloaderCode').textContent =
-      'Error';
-
-  }
-
-}
-
-
-function updateOptions(id) {
-
-  const select = document.getElementById(id);
-
-  const months = [1, 3, 6, 12];
-
-  months.forEach(month => {
-
-    const option = select.querySelector(
-      `option[value="${month}"]`
+    console.error(
+      'Error creando preferencia de Mercado Pago:',
+      error
     );
 
-    if (!option) return;
-
-    const discount =
-      config.descuentos[month] || 0;
-
-    if (month === 1 || discount === 0) {
-
-      option.textContent =
-        `${month} mes${month > 1 ? 'es' : ''}`;
-
-    } else {
-
-      option.textContent =
-        `${month} meses - ${discount * 100}% descuento`;
-
-    }
-
-  });
-
-}
-
-
-function calc(i) {
-
-  if (!config) return;
-
-  const m =
-    Number(document.getElementById('m' + i).value);
-
-  let price;
-
-  if (i === 1) {
-    price = config.precios.comun;
-  }
-
-  if (i === 2) {
-    price = config.precios.pareja;
-  }
-
-  if (i === 3) {
-    price = config.precios.familiar;
-  }
-
-  const discount =
-    config.descuentos[m] || 0;
-
-  const total =
-    price * m * (1 - discount);
-
-  document.getElementById('t' + i).textContent =
-    'Total: ' + money(total);
-
-}
-
-
-async function buy(plan, i) {
-
-  const email =
-    document.getElementById('e' + i).value.trim();
-
-  const months =
-    Number(document.getElementById('m' + i).value);
-
-  if (!email) {
-
-    alert('Ingresá tu Gmail.');
-
-    return;
+    return res.status(500).json({
+      error:
+        'No se pudo crear el pago'
+    });
 
   }
 
-  if (!email.includes('@')) {
+});
 
-    alert('Ingresá un Gmail válido.');
 
-    return;
+/* =====================================================
+   WEBHOOK MERCADO PAGO
+===================================================== */
 
-  }
+app.post('/api/webhook', async (req, res) => {
+
+  console.log(
+    'Webhook Mercado Pago:',
+    JSON.stringify(req.body)
+  );
+
+
+  /* RESPONDER RÁPIDAMENTE A MERCADO PAGO */
+
+  res.sendStatus(200);
+
 
   try {
 
-    const response = await fetch(
-      '/api/create-preference',
-      {
-        method: 'POST',
+    const paymentId =
+      req.body?.data?.id ||
+      req.body?.id;
 
-        headers: {
-          'Content-Type': 'application/json'
-        },
+    const type =
+      req.body?.type;
 
-        body: JSON.stringify({
-          plan,
-          months,
-          email
-        })
-      }
-    );
 
-    const data = await response.json();
+    if (!paymentId) {
 
-    if (!response.ok) {
-
-      alert(
-        data.error ||
-        'No se pudo crear el pago.'
+      console.log(
+        'Webhook sin ID de pago.'
       );
 
       return;
 
     }
 
-    /*
-      IMPORTANTE:
-      server.js devuelve el enlace
-      como "url".
-    */
 
-    if (data.url) {
+    /* SOLO PROCESAR PAGOS */
 
-      window.location.href =
-        data.url;
+    if (
+      type &&
+      type !== 'payment'
+    ) {
 
-    } else {
-
-      console.error(
-        'Respuesta del servidor:',
-        data
+      console.log(
+        'Webhook ignorado. Tipo:',
+        type
       );
 
-      alert(
-        'Mercado Pago no devolvió el enlace de pago.'
+      return;
+
+    }
+
+
+    if (!ACCESS_TOKEN) {
+
+      console.error(
+        'Falta MP_ACCESS_TOKEN'
+      );
+
+      return;
+
+    }
+
+
+    if (!RESEND_API_KEY || !resend) {
+
+      console.error(
+        'Falta RESEND_API_KEY'
+      );
+
+      return;
+
+    }
+
+
+    if (!ADMIN_EMAIL) {
+
+      console.error(
+        'Falta ADMIN_EMAIL'
+      );
+
+      return;
+
+    }
+
+
+    /* =================================================
+       CONSULTAR PAGO EN MERCADO PAGO
+    ================================================= */
+
+    const response = await fetch(
+
+      `https://api.mercadopago.com/v1/payments/${paymentId}`,
+
+      {
+
+        method: 'GET',
+
+        headers: {
+
+          Authorization:
+            `Bearer ${ACCESS_TOKEN}`
+
+        }
+
+      }
+
+    );
+
+
+    if (!response.ok) {
+
+      console.error(
+        'No se pudo consultar el pago:',
+        response.status
+      );
+
+      return;
+
+    }
+
+
+    const payment =
+      await response.json();
+
+
+    console.log(
+      'Estado del pago:',
+      payment.status
+    );
+
+
+    /* SOLO PAGOS APROBADOS */
+
+    if (
+      payment.status !== 'approved'
+    ) {
+
+      console.log(
+        'Pago todavía no aprobado:',
+        payment.status
+      );
+
+      return;
+
+    }
+
+
+    /* =================================================
+       RECUPERAR DATOS DE LA COMPRA
+    ================================================= */
+
+    let order = {};
+
+    try {
+
+      order = JSON.parse(
+        payment.external_reference || '{}'
+      );
+
+    } catch (error) {
+
+      console.log(
+        'No se pudo interpretar external_reference'
       );
 
     }
 
+
+    const plan =
+      plans[order.plan];
+
+    const planName =
+      plan
+        ? plan.name
+        : 'Plan no identificado';
+
+    const devices =
+      plan
+        ? plan.devices
+        : '-';
+
+    const months =
+      order.months ||
+      '-';
+
+    const total =
+      order.total ||
+      payment.transaction_amount ||
+      '-';
+
+    const customerEmail =
+      order.email ||
+      payment.payer?.email ||
+      'No disponible';
+
+
+    /* =================================================
+       CORREO AL ADMINISTRADOR
+    ================================================= */
+
+    const adminEmailResult =
+      await resend.emails.send({
+
+        from:
+          'TV Digital <onboarding@resend.dev>',
+
+        to:
+          [ADMIN_EMAIL],
+
+        subject:
+          'Nuevo pago recibido - TV Digital',
+
+        html: `
+
+          <h2>Nuevo pago recibido</h2>
+
+          <p>
+            Se recibió un nuevo pago aprobado.
+          </p>
+
+          <hr>
+
+          <p>
+            <strong>Cliente:</strong>
+            ${customerEmail}
+          </p>
+
+          <p>
+            <strong>Plan:</strong>
+            ${planName}
+          </p>
+
+          <p>
+            <strong>Dispositivos:</strong>
+            ${devices}
+          </p>
+
+          <p>
+            <strong>Duración:</strong>
+            ${months} mes(es)
+          </p>
+
+          <p>
+            <strong>Total:</strong>
+            $${total} ARS
+          </p>
+
+          <p>
+            <strong>ID de pago:</strong>
+            ${payment.id}
+          </p>
+
+          <p>
+            <strong>Estado:</strong>
+            APROBADO
+          </p>
+
+          <hr>
+
+          <p>
+            Este correo fue generado automáticamente
+            por TV Digital.
+          </p>
+
+        `
+
+      });
+
+
+    if (adminEmailResult.error) {
+
+      console.error(
+        'Error enviando correo al administrador:',
+        adminEmailResult.error
+      );
+
+    } else {
+
+      console.log(
+        'Correo enviado correctamente al administrador.'
+      );
+
+    }
+
+
+    /* =================================================
+       CORREO AL CLIENTE
+    ================================================= */
+
+    const customerEmailResult =
+      await resend.emails.send({
+
+        from:
+          'TV Digital <onboarding@resend.dev>',
+
+        to:
+          [customerEmail],
+
+        subject:
+          '¡Pago recibido! - TV Digital',
+
+        html: `
+
+          <h2>¡Gracias por tu compra!</h2>
+
+          <p>
+            Recibimos correctamente tu pago
+            de TV Digital.
+          </p>
+
+          <p>
+            Tu suscripción fue aprobada.
+          </p>
+
+          <hr>
+
+          <p>
+            <strong>Plan:</strong>
+            ${planName}
+          </p>
+
+          <p>
+            <strong>Dispositivos:</strong>
+            ${devices}
+          </p>
+
+          <p>
+            <strong>Duración:</strong>
+            ${months} mes(es)
+          </p>
+
+          <p>
+            <strong>Total:</strong>
+            $${total} ARS
+          </p>
+
+          <hr>
+
+          <p>
+            En breve te enviaremos tu
+            <strong>cuenta y contraseña de acceso</strong>
+            para que puedas ingresar al servicio.
+          </p>
+
+          <p>
+            Gracias por elegir TV Digital.
+          </p>
+
+        `
+
+      });
+
+
+    if (customerEmailResult.error) {
+
+      console.error(
+        'Error enviando correo al cliente:',
+        customerEmailResult.error
+      );
+
+    } else {
+
+      console.log(
+        'Correo enviado correctamente al cliente.'
+      );
+
+    }
+
+
   } catch (error) {
 
-    console.error(error);
-
-    alert(
-      'Ocurrió un error. Intentá nuevamente.'
+    console.error(
+      'Error procesando webhook:',
+      error
     );
 
   }
 
-}
+});
 
 
-loadConfig();
+/* =====================================================
+   HEALTH CHECK
+===================================================== */
 
-</script>
+app.get('/health', (req, res) => {
 
-</body>
-</html>;
+  res.json({
+    ok: true
+  });
+
+});
+
+
+/* =====================================================
+   INICIAR SERVIDOR
+===================================================== */
+
+app.listen(PORT, () => {
+
+  console.log(
+    `TV Digital server listening on ${PORT}`
+  );
+
+});
