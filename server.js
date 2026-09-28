@@ -42,9 +42,9 @@ const CONFIG = {
   // --------------------------------------------
 
   precios: {
-    comun: 1ARS,        // 1 dispositivo
-    pareja: 10000ARS,   // 2 dispositivos
-    familiar: 15000ARS  // 4 dispositivos
+    comun: 1,        // 1 dispositivo
+    pareja: 10000,   // 2 dispositivos
+    familiar: 15000  // 4 dispositivos
   },
 
 
