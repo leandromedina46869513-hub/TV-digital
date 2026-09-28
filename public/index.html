@@ -77,6 +77,7 @@ footer b{color:#fff}
 
 <section>
 <h2 class="section-title">¿Qué podés <span>disfrutar?</span></h2>
+
 <div class="benefits">
 
 <div class="card benefit">
@@ -124,7 +125,9 @@ footer b{color:#fff}
 </div>
 </section>
 
+
 <section>
+
 <h2 class="section-title">¿Cómo <span>instalar?</span></h2>
 
 <div class="steps">
@@ -157,84 +160,89 @@ footer b{color:#fff}
 </div>
 </section>
 
+
 <div class="warning">
+
 <h3>⚠️ IMPORTANTE: REVISÁ TU CORREO</h3>
-<p>Después de realizar el pago, recibirás un correo con tu <strong>cuenta y contraseña</strong>.</p>
-<p>📩 Revisá también la carpeta <strong>Spam / Correo no deseado</strong>.</p>
-<p>El correo puede tardar unos minutos en llegar dependiendo del horario en que se realice el pago.</p>
+
+<p>
+Después de realizar el pago, recibirás un correo con tu
+<strong>cuenta y contraseña</strong>.
+</p>
+
+<p>
+📩 Revisá también la carpeta
+<strong>Spam / Correo no deseado</strong>.
+</p>
+
+<p>
+El correo puede tardar unos minutos en llegar dependiendo
+del horario en que se realice el pago.
+</p>
+
 </div>
+
 
 <section>
 
-<h2 class="section-title">Elegí tu <span>plan</span></h2>
+<h2 class="section-title">
+Elegí tu <span>plan</span>
+</h2>
 
 <div class="plans">
 
-<div class="card plan">
-<h3>COMÚN</h3>
-<div class="devices">1 dispositivo</div>
 
-<div class="price" id="price-comun">
+<!-- =========================
+     PLAN COMÚN
+     ========================= -->
+
+<div class="card plan">
+
+<h3>COMÚN</h3>
+
+<div class="devices">
+1 dispositivo
+</div>
+
+<div
+class="price"
+id="price-comun"
+>
 $1 <small>/ mes</small>
 </div>
 
-<a class="buy" href="#compra" data-plan="comun">
-COMPRAR
-</a>
-</div>
 
+<div class="discounts">
 
-<div class="card plan featured">
-
-<div class="badge">MÁS ELEGIDO</div>
-
-<h3>COMBO PAREJA</h3>
-<div class="devices">2 dispositivos</div>
-
-<div class="price" id="price-pareja">
-$10.000 <small>/ mes</small>
-</div>
-
-<a class="buy" href="#compra" data-plan="pareja">
-COMPRAR
-</a>
-
-</div>
-
-
-<div class="card plan">
-
-<h3>COMBO FAMILIAR</h3>
-<div class="devices">4 dispositivos</div>
-
-<div class="price" id="price-familiar">
-$15.000 <small>/ mes</small>
-</div>
-
-<a class="buy" href="#compra" data-plan="familiar">
-COMPRAR
-</a>
-
-</div>
-
-</div>
-
-
-<div class="duration">
-
-<span data-months="1" data-discount="1">
+<span
+class="duration-option selected"
+data-plan="comun"
+data-months="1"
+>
 1 mes · <b>0% OFF</b>
 </span>
 
-<span data-months="3" data-discount="3">
+<span
+class="duration-option"
+data-plan="comun"
+data-months="3"
+>
 3 meses · <b>10% OFF</b>
 </span>
 
-<span data-months="6" data-discount="6">
+<span
+class="duration-option"
+data-plan="comun"
+data-months="6"
+>
 6 meses · <b>20% OFF</b>
 </span>
 
-<span data-months="12" data-discount="12">
+<span
+class="duration-option"
+data-plan="comun"
+data-months="12"
+>
 12 meses · <b>35% OFF</b>
 </span>
 
@@ -242,16 +250,225 @@ COMPRAR
 
 
 <div
-id="totalCompra"
-style="
-text-align:center;
-margin:-35px auto 58px;
-font-size:1.35rem;
-font-weight:900;
-color:#13c9ff;
-"
+class="total-plan"
+id="total-comun"
 >
 Total: $1
+</div>
+
+
+<div class="email-box">
+
+<label>
+¿A qué correo querés recibir la información de acceso?
+</label>
+
+<input
+id="email-comun"
+type="email"
+placeholder="tuemail@gmail.com"
+>
+
+<a
+class="buy comprar-plan"
+href="#"
+data-plan="comun"
+>
+COMPRAR
+</a>
+
+</div>
+
+</div>
+
+
+<!-- =========================
+     PLAN PAREJA
+     ========================= -->
+
+<div class="card plan featured">
+
+<div class="badge">
+MÁS ELEGIDO
+</div>
+
+<h3>
+COMBO PAREJA
+</h3>
+
+<div class="devices">
+2 dispositivos
+</div>
+
+<div
+class="price"
+id="price-pareja"
+>
+$10.000 <small>/ mes</small>
+</div>
+
+
+<div class="discounts">
+
+<span
+class="duration-option selected"
+data-plan="pareja"
+data-months="1"
+>
+1 mes · <b>0% OFF</b>
+</span>
+
+<span
+class="duration-option"
+data-plan="pareja"
+data-months="3"
+>
+3 meses · <b>10% OFF</b>
+</span>
+
+<span
+class="duration-option"
+data-plan="pareja"
+data-months="6"
+>
+6 meses · <b>20% OFF</b>
+</span>
+
+<span
+class="duration-option"
+data-plan="pareja"
+data-months="12"
+>
+12 meses · <b>35% OFF</b>
+</span>
+
+</div>
+
+
+<div
+class="total-plan"
+id="total-pareja"
+>
+Total: $10.000
+</div>
+
+
+<div class="email-box">
+
+<label>
+¿A qué correo querés recibir la información de acceso?
+</label>
+
+<input
+id="email-pareja"
+type="email"
+placeholder="tuemail@gmail.com"
+>
+
+<a
+class="buy comprar-plan"
+href="#"
+data-plan="pareja"
+>
+COMPRAR
+</a>
+
+</div>
+
+</div>
+
+
+<!-- =========================
+     PLAN FAMILIAR
+     ========================= -->
+
+<div class="card plan">
+
+<h3>
+COMBO FAMILIAR
+</h3>
+
+<div class="devices">
+4 dispositivos
+</div>
+
+<div
+class="price"
+id="price-familiar"
+>
+$15.000 <small>/ mes</small>
+</div>
+
+
+<div class="discounts">
+
+<span
+class="duration-option selected"
+data-plan="familiar"
+data-months="1"
+>
+1 mes · <b>0% OFF</b>
+</span>
+
+<span
+class="duration-option"
+data-plan="familiar"
+data-months="3"
+>
+3 meses · <b>10% OFF</b>
+</span>
+
+<span
+class="duration-option"
+data-plan="familiar"
+data-months="6"
+>
+6 meses · <b>20% OFF</b>
+</span>
+
+<span
+class="duration-option"
+data-plan="familiar"
+data-months="12"
+>
+12 meses · <b>35% OFF</b>
+</span>
+
+</div>
+
+
+<div
+class="total-plan"
+id="total-familiar"
+>
+Total: $15.000
+</div>
+
+
+<div class="email-box">
+
+<label>
+¿A qué correo querés recibir la información de acceso?
+</label>
+
+<input
+id="email-familiar"
+type="email"
+placeholder="tuemail@gmail.com"
+>
+
+<a
+class="buy comprar-plan"
+href="#"
+data-plan="familiar"
+>
+COMPRAR
+</a>
+
+</div>
+
+</div>
+
 </div>
 
 </section>
@@ -321,52 +538,24 @@ Sé el primero en dejar tu opinión.
 </section>
 
 
-<section id="compra" style="padding-bottom:55px">
+<section class="support-section">
 
-<h2 class="section-title">
-¿A qué correo te enviamos la <span>información?</span>
-</h2>
+<div class="card support-card">
 
-<div
-class="card"
-style="max-width:620px;margin:auto"
->
-
-<input
-id="emailCliente"
-style="
-width:100%;
-padding:14px;
-border-radius:12px;
-border:1px solid #21445a;
-background:#07101a;
-color:#fff;
-"
-type="email"
-placeholder="tuemail@gmail.com"
->
-
-<div
-id="resumenCompra"
-style="
-margin:15px 0;
-padding:14px;
-border-radius:12px;
-background:#07101a;
-border:1px solid #17384d;
-text-align:center;
-color:#cfe2ee;
-"
->
-Plan: Común · 1 mes · Total: $1
+<div class="support-icon">
+✉️
 </div>
 
-<a
-id="continuarPago"
-class="buy"
-href="#"
->
-CONTINUAR AL PAGO
+<h2>
+SOPORTE
+</h2>
+
+<p>
+¿Necesitás ayuda? Escribinos a:
+</p>
+
+<a href="mailto:tvdigitalnotificaciones@gmail.com">
+tvdigitalnotificaciones@gmail.com
 </a>
 
 </div>
@@ -376,32 +565,90 @@ CONTINUAR AL PAGO
 
 <style>
 
-.duration span{
+/* =====================================
+   SELECCIÓN DE DURACIÓN
+   ===================================== */
+
+.discounts{
+display:flex;
+flex-direction:column;
+gap:7px;
+margin-top:15px;
+}
+
+.duration-option{
 cursor:pointer;
+user-select:none;
 transition:
-transform .15s ease,
-border-color .15s ease,
-background .15s ease;
+background .2s ease,
+border-color .2s ease,
+transform .15s ease;
 }
 
-.duration span.selected{
-border-color:#13c9ff;
-background:#0b2232;
-transform:scale(1.04);
-}
-
-#totalCompra strong{
+.duration-option.selected{
+border-color:#13c9ff !important;
+background:#0b2232 !important;
 color:#fff;
+transform:scale(1.02);
 }
 
-#totalCompra small{
-font-size:.75rem;
-color:#8fa7b7;
-font-weight:600;
-}
 
-#resumenCompra strong{
+/* =====================================
+   TOTAL DE CADA PLAN
+   ===================================== */
+
+.total-plan{
+margin-top:14px;
+padding:12px;
+border-radius:10px;
+background:#07101a;
+border:1px solid #17384d;
+text-align:center;
+font-size:16px;
+font-weight:800;
 color:#13c9ff;
+}
+
+
+/* =====================================
+   EMAIL
+   ===================================== */
+
+.email-box{
+margin-top:18px;
+text-align:left;
+}
+
+.email-box label{
+display:block;
+font-size:12px;
+line-height:1.45;
+color:#9fb2c8;
+margin-bottom:8px;
+}
+
+.email-box input{
+box-sizing:border-box;
+width:100%;
+padding:11px 12px;
+border-radius:10px;
+border:1px solid #21445a;
+background:#07101a;
+color:#fff;
+outline:none;
+margin-bottom:10px;
+font-size:14px;
+}
+
+.email-box input::placeholder{
+color:#71839a;
+}
+
+.email-box .buy{
+display:block;
+text-align:center;
+width:100%;
+box-sizing:border-box;
 }
 
 </style>
@@ -409,33 +656,48 @@ color:#13c9ff;
 
 <script>
 
-/* =========================================================
-   VARIABLES
-   ========================================================= */
+/* ==================================================
+   CONFIGURACIÓN
+   ================================================== */
 
 let CONFIG_TV = null;
 
-let planSeleccionado = 'comun';
 
-let mesesSeleccionados = 1;
+/* ==================================================
+   PLANES
+   ================================================== */
 
-let totalSeleccionado = 0;
+const planesTV = {
+
+comun: {
+nombre: 'Común'
+},
+
+pareja: {
+nombre: 'Combo Pareja'
+},
+
+familiar: {
+nombre: 'Combo Familiar'
+}
+
+};
 
 
-/* =========================================================
-   CARGAR CONFIGURACIÓN DESDE SERVER.JS
-   ========================================================= */
+/* ==================================================
+   CARGAR CONFIGURACIÓN DEL SERVIDOR
+   ================================================== */
 
-async function cargarConfiguracion() {
+async function cargarConfiguracionTV(){
 
-try {
+try{
 
 const respuesta =
 await fetch('/api/config');
 
-if (!respuesta.ok) {
+if(!respuesta.ok){
 throw new Error(
-'No se pudo obtener la configuración'
+'No se pudo cargar la configuración.'
 );
 }
 
@@ -443,21 +705,29 @@ CONFIG_TV =
 await respuesta.json();
 
 console.log(
-'Configuración recibida:',
+'Configuración TV Digital:',
 CONFIG_TV
 );
 
-actualizarPrecios();
 
-actualizarDescuentos();
+/* Actualizar precios */
 
-calcularTotal();
+actualizarPreciosTV();
 
-prepararEventos();
+
+/* Actualizar descuentos */
+
+actualizarDescuentosTV();
+
+
+/* Calcular totales iniciales */
+
+calcularTodosLosTotales();
+
 
 }
 
-catch(error) {
+catch(error){
 
 console.error(
 'Error cargando configuración:',
@@ -469,34 +739,36 @@ error
 }
 
 
-/* =========================================================
-   PRECIOS
-   ========================================================= */
+/* ==================================================
+   ACTUALIZAR PRECIOS
+   ================================================== */
 
-function actualizarPrecios() {
+function actualizarPreciosTV(){
 
-if (!CONFIG_TV) return;
+if(!CONFIG_TV){
+return;
+}
 
 
-const comun =
+const precioComun =
 document.getElementById(
 'price-comun'
 );
 
-const pareja =
+const precioPareja =
 document.getElementById(
 'price-pareja'
 );
 
-const familiar =
+const precioFamiliar =
 document.getElementById(
 'price-familiar'
 );
 
 
-if (comun) {
+if(precioComun){
 
-comun.innerHTML =
+precioComun.innerHTML =
 '$' +
 Number(
 CONFIG_TV.precios.comun
@@ -506,9 +778,9 @@ CONFIG_TV.precios.comun
 }
 
 
-if (pareja) {
+if(precioPareja){
 
-pareja.innerHTML =
+precioPareja.innerHTML =
 '$' +
 Number(
 CONFIG_TV.precios.pareja
@@ -518,9 +790,9 @@ CONFIG_TV.precios.pareja
 }
 
 
-if (familiar) {
+if(precioFamiliar){
 
-familiar.innerHTML =
+precioFamiliar.innerHTML =
 '$' +
 Number(
 CONFIG_TV.precios.familiar
@@ -530,17 +802,19 @@ CONFIG_TV.precios.familiar
 }
 
 
-const downloader =
+/* Código Downloader */
+
+const codigo =
 document.getElementById(
 'downloaderCode'
 );
 
-if (
-downloader &&
+if(
+codigo &&
 CONFIG_TV.downloader
-) {
+){
 
-downloader.textContent =
+codigo.textContent =
 CONFIG_TV.downloader;
 
 }
@@ -548,45 +822,45 @@ CONFIG_TV.downloader;
 }
 
 
-/* =========================================================
-   DESCUENTOS
-   ========================================================= */
+/* ==================================================
+   ACTUALIZAR TEXTOS DE DESCUENTO
+   ================================================== */
 
-function actualizarDescuentos() {
+function actualizarDescuentosTV(){
 
-if (!CONFIG_TV) return;
+if(!CONFIG_TV){
+return;
+}
 
 
 document
-.querySelectorAll('[data-discount]')
-.forEach(elemento => {
+.querySelectorAll(
+'.duration-option'
+)
+.forEach(opcion => {
 
 const meses =
-elemento.getAttribute(
-'data-discount'
+Number(
+opcion.dataset.months
 );
 
 const descuento =
-CONFIG_TV.descuentos[meses];
-
-if (
-descuento !== undefined
-) {
+Number(
+CONFIG_TV.descuentos[meses] || 0
+);
 
 const porcentaje =
 Math.round(
-Number(descuento) * 100
+descuento * 100
 );
 
 const b =
-elemento.querySelector('b');
+opcion.querySelector('b');
 
-if (b) {
+if(b){
 
 b.textContent =
 porcentaje + '% OFF';
-
-}
 
 }
 
@@ -595,178 +869,158 @@ porcentaje + '% OFF';
 }
 
 
-/* =========================================================
+/* ==================================================
+   OBTENER PRECIO MENSUAL
+   ================================================== */
+
+function obtenerPrecio(plan){
+
+if(!CONFIG_TV){
+return 0;
+}
+
+return Number(
+CONFIG_TV.precios[plan] || 0
+);
+
+}
+
+
+/* ==================================================
    CALCULAR TOTAL
-   ========================================================= */
+   ================================================== */
 
-function calcularTotal() {
+function calcularTotalPlan(
+plan,
+meses
+){
 
-if (!CONFIG_TV) return;
+if(!CONFIG_TV){
+return 0;
+}
 
 
 const precioMensual =
-Number(
-CONFIG_TV.precios[
-planSeleccionado
-]
-);
-
+obtenerPrecio(plan);
 
 const descuento =
 Number(
-CONFIG_TV.descuentos[
-mesesSeleccionados
-] || 0
+CONFIG_TV.descuentos[meses] || 0
 );
 
 
-totalSeleccionado =
+const total =
 Math.round(
 precioMensual *
-mesesSeleccionados *
+Number(meses) *
 (1 - descuento)
 );
 
 
-mostrarTotal();
-
-mostrarResumen();
+return total;
 
 }
 
 
-/* =========================================================
-   MOSTRAR TOTAL
-   ========================================================= */
+/* ==================================================
+   MOSTRAR TOTAL DE UN PLAN
+   ================================================== */
 
-function mostrarTotal() {
+function mostrarTotalPlan(
+plan,
+meses
+){
+
+const total =
+calcularTotalPlan(
+plan,
+meses
+);
+
 
 const elemento =
 document.getElementById(
-'totalCompra'
+'total-' + plan
 );
 
-if (!elemento) return;
+if(!elemento){
+return;
+}
 
-
-const descuento =
-Number(
-CONFIG_TV.descuentos[
-mesesSeleccionados
-] || 0
-);
-
-
-if (descuento > 0) {
 
 elemento.innerHTML =
-'Total por ' +
-mesesSeleccionados +
-' mes(es): ' +
-'<strong>$' +
-totalSeleccionado.toLocaleString(
-'es-AR'
-) +
-'</strong> ' +
-'<small>(' +
-Math.round(
-descuento * 100
-) +
-'% OFF)</small>';
-
-}
-
-else {
-
-elemento.innerHTML =
-'Total por ' +
-mesesSeleccionados +
-' mes(es): ' +
-'<strong>$' +
-totalSeleccionado.toLocaleString(
-'es-AR'
-) +
-'</strong>';
-
-}
-
-}
-
-
-/* =========================================================
-   RESUMEN DE COMPRA
-   ========================================================= */
-
-function mostrarResumen() {
-
-const resumen =
-document.getElementById(
-'resumenCompra'
-);
-
-if (!resumen) return;
-
-
-const nombres = {
-
-comun:
-'Común',
-
-pareja:
-'Combo Pareja',
-
-familiar:
-'Combo Familiar'
-
-};
-
-
-resumen.innerHTML =
-'Plan: <strong>' +
-nombres[planSeleccionado] +
-'</strong> · ' +
-mesesSeleccionados +
-' mes(es) · Total: <strong>$' +
-totalSeleccionado.toLocaleString(
-'es-AR'
-) +
+'Total: <strong>$' +
+total.toLocaleString('es-AR') +
 '</strong>';
 
 }
 
 
-/* =========================================================
-   EVENTOS
-   ========================================================= */
+/* ==================================================
+   CALCULAR TODOS LOS TOTALES INICIALES
+   ================================================== */
 
-function prepararEventos() {
+function calcularTodosLosTotales(){
+
+mostrarTotalPlan(
+'comun',
+1
+);
+
+mostrarTotalPlan(
+'pareja',
+1
+);
+
+mostrarTotalPlan(
+'familiar',
+1
+);
+
+}
 
 
-/* -----------------------------------------
-   MESES
-   ----------------------------------------- */
+/* ==================================================
+   SELECCIONAR DURACIÓN
+   ================================================== */
 
 document
-.querySelectorAll(
-'.duration span[data-months]'
-)
-.forEach(elemento => {
-
-elemento.addEventListener(
+.addEventListener(
 'click',
-function() {
+function(event){
 
-mesesSeleccionados =
+const opcion =
+event.target.closest(
+'.duration-option'
+);
+
+if(!opcion){
+return;
+}
+
+
+const plan =
+opcion.dataset.plan;
+
+const meses =
 Number(
-this.getAttribute(
-'data-months'
-)
+opcion.dataset.months
 );
 
 
-document
+/* Quitar selección solamente
+   dentro de esta tarjeta */
+
+const tarjeta =
+opcion.closest(
+'.plan'
+);
+
+if(tarjeta){
+
+tarjeta
 .querySelectorAll(
-'.duration span[data-months]'
+'.duration-option'
 )
 .forEach(item => {
 
@@ -776,107 +1030,109 @@ item.classList.remove(
 
 });
 
+}
 
-this.classList.add(
+
+/* Marcar opción */
+
+opcion.classList.add(
 'selected'
 );
 
 
-calcularTotal();
+/* Calcular total */
+
+mostrarTotalPlan(
+plan,
+meses
+);
+
+
+/* Guardar selección */
+
+if(tarjeta){
+
+tarjeta.dataset.selectedMonths =
+meses;
+
+}
 
 }
 );
 
-});
 
-
-/* Seleccionar 1 mes inicialmente */
-
-const primerMes =
-document.querySelector(
-'.duration span[data-months="1"]'
-);
-
-if (primerMes) {
-
-primerMes.classList.add(
-'selected'
-);
-
-}
-
-
-/* -----------------------------------------
-   BOTONES COMPRAR
-   ----------------------------------------- */
+/* ==================================================
+   COMPRAR
+   ================================================== */
 
 document
-.querySelectorAll(
-'.plan .buy[data-plan]'
-)
-.forEach(boton => {
-
-boton.addEventListener(
+.addEventListener(
 'click',
-function() {
+async function(event){
 
-planSeleccionado =
-this.getAttribute(
-'data-plan'
+const boton =
+event.target.closest(
+'.comprar-plan'
 );
 
-calcularTotal();
-
+if(!boton){
+return;
 }
-);
 
-});
-
-
-/* -----------------------------------------
-   CONTINUAR AL PAGO
-   ----------------------------------------- */
-
-const botonPago =
-document.getElementById(
-'continuarPago'
-);
-
-
-if (botonPago) {
-
-botonPago.addEventListener(
-'click',
-async function(event) {
 
 event.preventDefault();
 
 
-const emailInput =
+const plan =
+boton.dataset.plan;
+
+
+const tarjeta =
+boton.closest(
+'.plan'
+);
+
+
+let meses = 1;
+
+
+if(tarjeta){
+
+meses =
+Number(
+tarjeta.dataset.selectedMonths || 1
+);
+
+}
+
+
+const input =
 document.getElementById(
-'emailCliente'
+'email-' + plan
 );
 
 
 const email =
-emailInput
-? emailInput.value.trim()
+input
+? input.value.trim()
 : '';
 
 
-if (
+/* =========================================
+   VALIDAR EMAIL
+   ========================================= */
+
+if(
 !email ||
-!/^\S+@\S+\.\S+$/.test(
-email
-)
-) {
+!/^\S+@\S+\.\S+$/.test(email)
+){
 
 alert(
 'Ingresá un Gmail válido para continuar.'
 );
 
-if (emailInput) {
-emailInput.focus();
+if(input){
+input.focus();
 }
 
 return;
@@ -884,15 +1140,26 @@ return;
 }
 
 
-botonPago.textContent =
+/* =========================================
+   DESACTIVAR BOTÓN
+   ========================================= */
+
+const textoOriginal =
+boton.textContent;
+
+boton.textContent =
 'CREANDO PAGO...';
 
-botonPago.style.pointerEvents =
+boton.style.pointerEvents =
 'none';
 
 
-try {
+try{
 
+
+/* =========================================
+   ENVIAR AL SERVIDOR
+   ========================================= */
 
 const respuesta =
 await fetch(
@@ -908,14 +1175,11 @@ headers:{
 
 body:JSON.stringify({
 
-plan:
-planSeleccionado,
+plan:plan,
 
-months:
-mesesSeleccionados,
+months:meses,
 
-email:
-email
+email:email
 
 })
 
@@ -933,7 +1197,11 @@ datos
 );
 
 
-if (!respuesta.ok) {
+/* =========================================
+   ERROR DEL SERVIDOR
+   ========================================= */
+
+if(!respuesta.ok){
 
 throw new Error(
 datos.error ||
@@ -943,12 +1211,16 @@ datos.error ||
 }
 
 
+/* =========================================
+   OBTENER LINK MERCADO PAGO
+   ========================================= */
+
 const enlace =
 datos.url ||
 datos.init_point;
 
 
-if (!enlace) {
+if(!enlace){
 
 throw new Error(
 'Mercado Pago no devolvió el enlace de pago.'
@@ -957,13 +1229,16 @@ throw new Error(
 }
 
 
+/* =========================================
+   IR A MERCADO PAGO
+   ========================================= */
+
 window.location.href =
 enlace;
 
 
 }
-
-catch(error) {
+catch(error){
 
 console.error(
 'Error iniciando pago:',
@@ -977,36 +1252,38 @@ error.message ||
 );
 
 
-botonPago.textContent =
-'CONTINUAR AL PAGO';
+boton.textContent =
+textoOriginal;
 
-botonPago.style.pointerEvents =
+boton.style.pointerEvents =
 'auto';
 
 }
 
-});
-
 }
+);
 
-}
 
-
-/* =========================================================
+/* ==================================================
    INICIAR
-   ========================================================= */
+   ================================================== */
 
-cargarConfiguracion();
+cargarConfiguracionTV();
 
 </script>
 
 
 <footer>
-<b>TV DIGITAL</b><br>
+
+<b>TV DIGITAL</b>
+<br>
+
 Entretenimiento digital en un solo lugar.
+
 </footer>
 
 </div>
 
 </body>
+
 </html>
