@@ -486,44 +486,32 @@ COMPRAR
 Dejá tu comentario
 </h3>
 
-<div class="stars">
-☆ ☆ ☆ ☆ ☆
+<div class="stars" id="rating-stars">
+<span data-rating="1">☆</span>
+<span data-rating="2">☆</span>
+<span data-rating="3">☆</span>
+<span data-rating="4">☆</span>
+<span data-rating="5">☆</span>
 </div>
 
 <input
+id="review-name"
 type="text"
 placeholder="Tu nombre"
 >
 
 <textarea
+id="review-text"
 placeholder="Contanos qué te pareció el servicio..."
 ></textarea>
 
-<button class="submit">
+<button class="submit" id="publish-review">
 PUBLICAR COMENTARIO
 </button>
 
 </div>
 
-
-<div class="review-list">
-
-<div class="card review">
-
-<div class="stars-small">
-★★★★★
-</div>
-
-<strong>
-Ejemplo de comentario
-</strong>
-
-<p>
-Los comentarios reales de los clientes aparecerán acá.
-</p>
-
-</div>
-
+<div class="review-list" id="review-list">
 
 <div class="card review">
 
@@ -1284,6 +1272,95 @@ Entretenimiento digital en un solo lugar.
 
 </div>
 
+<script>
+let calificacionSeleccionada = 0;
+
+const estrellas = document.querySelectorAll('#rating-stars span');
+const botonPublicar = document.getElementById('publish-review');
+const nombreInput = document.getElementById('review-name');
+const comentarioInput = document.getElementById('review-text');
+const listaComentarios = document.getElementById('review-list');
+
+estrellas.forEach(function(estrella) {
+
+  estrella.addEventListener('click', function() {
+
+    calificacionSeleccionada = Number(this.dataset.rating);
+
+    estrellas.forEach(function(e) {
+      const numero = Number(e.dataset.rating);
+
+      if (numero <= calificacionSeleccionada) {
+        e.textContent = '★';
+      } else {
+        e.textContent = '☆';
+      }
+    });
+
+  });
+
+});
+
+
+botonPublicar.addEventListener('click', function() {
+
+  const nombre = nombreInput.value.trim();
+  const comentario = comentarioInput.value.trim();
+
+  if (!nombre) {
+    alert('Ingresá tu nombre.');
+    nombreInput.focus();
+    return;
+  }
+
+  if (!calificacionSeleccionada) {
+    alert('Seleccioná una calificación de 1 a 5 estrellas.');
+    return;
+  }
+
+  if (!comentario) {
+    alert('Escribí un comentario.');
+    comentarioInput.focus();
+    return;
+  }
+
+
+  const nuevaOpinion = document.createElement('div');
+
+  nuevaOpinion.className = 'card review';
+
+  let estrellasHTML = '';
+
+  for (let i = 1; i <= 5; i++) {
+    estrellasHTML += i <= calificacionSeleccionada ? '★' : '☆';
+  }
+
+  nuevaOpinion.innerHTML = `
+    <div class="stars-small">${estrellasHTML}</div>
+    <strong>${nombre}</strong>
+    <p>${comentario}</p>
+  `;
+
+  listaComentarios.insertBefore(
+    nuevaOpinion,
+    listaComentarios.firstChild
+  );
+
+
+  nombreInput.value = '';
+  comentarioInput.value = '';
+
+  calificacionSeleccionada = 0;
+
+  estrellas.forEach(function(e) {
+    e.textContent = '☆';
+  });
+
+  alert('¡Gracias por dejar tu opinión!');
+
+});
+</script>
+     
 </body>
 
 </html>
