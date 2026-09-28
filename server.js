@@ -11,9 +11,10 @@ const __dirname = path.dirname(__filename);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ===============================
+// ======================================================
 // ARCHIVOS DE LA PÁGINA
-// ===============================
+// ======================================================
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
@@ -22,36 +23,70 @@ app.get('/', (req, res) => {
   );
 });
 
-// ===============================
-// PUERTO
-// ===============================
-const PORT = process.env.PORT || 3000;
 
-// ===============================
-// CONFIGURACIÓN
-// ===============================
+// ======================================================
+// CONFIGURACIÓN TV DIGITAL
+// ======================================================
+//
+// PARA MODIFICAR PRECIOS, DESCUENTOS O DOWNLOADER,
+// SOLAMENTE CAMBIÁ LOS VALORES DE ESTA PARTE.
+//
+// NO ES NECESARIO TOCAR EL RESTO DEL ARCHIVO.
+//
+// ======================================================
+
 const CONFIG = {
+
+  // --------------------------------------------
+  // PRECIOS MENSUALES
+  // --------------------------------------------
+
   precios: {
-    comun: 1,
-    pareja: 10000,
-    familiar: 15000
+    comun: 1,        // 1 dispositivo
+    pareja: 10000,   // 2 dispositivos
+    familiar: 15000  // 4 dispositivos
   },
+
+
+  // --------------------------------------------
+  // DESCUENTOS SEGÚN CANTIDAD DE MESES
+  //
+  // 0.10 = 10%
+  // 0.20 = 20%
+  // 0.35 = 35%
+  // --------------------------------------------
 
   descuentos: {
-    1: 0,
-    3: 0.10,
-    6: 0.20,
-    12: 0.35
+    1: 0,       // 1 mes
+    3: 0.10,    // 3 meses
+    6: 0.20,    // 6 meses
+    12: 0.35    // 12 meses
   },
 
+
+  // --------------------------------------------
+  // CÓDIGO DOWNLOADER
+  // --------------------------------------------
+
   downloader: '6590043'
+
 };
 
-// ===============================
-// VARIABLES DE RENDER
-// ===============================
+
+// ======================================================
+// CONFIGURACIÓN DEL SERVIDOR
+// ======================================================
+
+const PORT = process.env.PORT || 3000;
+
 const ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
+
 const BASE_URL = process.env.BASE_URL;
+
+
+// ======================================================
+// CONFIGURACIÓN MAILJET
+// ======================================================
 
 const MAILJET_API_KEY =
   process.env.MAILJET_API_KEY;
@@ -62,16 +97,20 @@ const MAILJET_SECRET_KEY =
 const ADMIN_EMAIL =
   process.env.ADMIN_EMAIL;
 
-// Usamos el mismo correo del administrador
-// como remitente.
-// Debe estar validado en Mailjet.
 const FROM_EMAIL =
   process.env.ADMIN_EMAIL;
 
-// ===============================
+
+// ======================================================
 // PLANES
-// ===============================
+// ======================================================
+//
+// Estos valores salen automáticamente de CONFIG.
+// No hace falta modificar esta parte.
+// ======================================================
+
 const plans = {
+
   comun: {
     name: 'Común',
     devices: 1,
@@ -89,47 +128,86 @@ const plans = {
     devices: 4,
     monthly: CONFIG.precios.familiar
   }
+
 };
+
 
 const discounts = CONFIG.descuentos;
 
-// ===============================
-// EVITAR CORREOS DUPLICADOS
-// ===============================
+
+// ======================================================
+// PAGOS YA PROCESADOS
+// ======================================================
+
 const processedPayments = new Set();
 
-// ===============================
-// CONFIGURACIÓN PÚBLICA
-// ===============================
+
+// ======================================================
+// API DE CONFIGURACIÓN
+// ======================================================
+//
+// El index.html puede consultar esta ruta para obtener:
+// - precios
+// - descuentos
+// - código Downloader
+//
+// Así el index no necesita tener esos valores escritos
+// manualmente.
+// ======================================================
+
 app.get('/api/config', (req, res) => {
+
   res.json({
+
     precios: CONFIG.precios,
+
     descuentos: CONFIG.descuentos,
+
     downloader: CONFIG.downloader
+
   });
+
 });
 
-// ===============================
+
+// ======================================================
 // CREAR PREFERENCIA DE MERCADO PAGO
-// ===============================
+// ======================================================
+
 app.post(
   '/api/create-preference',
   async (req, res) => {
+
     try {
+
       console.log(
         'Solicitud para crear preferencia:',
         req.body
       );
 
+
+      // --------------------------------------------
+      // VERIFICAR CONFIGURACIÓN
+      // --------------------------------------------
+
       if (!ACCESS_TOKEN || !BASE_URL) {
+
         console.error(
           'Falta MP_ACCESS_TOKEN o BASE_URL'
         );
 
         return res.status(500).json({
+
           error: 'Servidor no configurado'
+
         });
+
       }
+
+
+      // --------------------------------------------
+      // DATOS RECIBIDOS
+      // --------------------------------------------
 
       const {
         plan,
@@ -137,26 +215,42 @@ app.post(
         email
       } = req.body;
 
+
       const selectedPlan =
         plans[plan];
 
+
       const selectedMonths =
         Number(months);
+
+
+      // --------------------------------------------
+      // VALIDAR DATOS
+      // --------------------------------------------
 
       if (
         !selectedPlan ||
         discounts[selectedMonths] === undefined ||
         !/^\S+@\S+\.\S+$/.test(email || '')
       ) {
+
         console.error(
           'Datos inválidos:',
           req.body
         );
 
         return res.status(400).json({
+
           error: 'Datos inválidos'
+
         });
+
       }
+
+
+      // --------------------------------------------
+      // CALCULAR TOTAL
+      // --------------------------------------------
 
       const total =
         Math.round(
@@ -168,50 +262,109 @@ app.post(
           )
         );
 
+
+      console.log(
+        'Plan:',
+        selectedPlan.name
+      );
+
+      console.log(
+        'Precio mensual:',
+        selectedPlan.monthly
+      );
+
+      console.log(
+        'Meses:',
+        selectedMonths
+      );
+
+      console.log(
+        'Descuento:',
+        discounts[selectedMonths]
+      );
+
       console.log(
         'Total calculado:',
         total
       );
+
+
+      // --------------------------------------------
+      // CONEXIÓN CON MERCADO PAGO
+      // --------------------------------------------
 
       const client =
         new MercadoPagoConfig({
           accessToken: ACCESS_TOKEN
         });
 
+
       const preference =
         new Preference(client);
 
+
+      // --------------------------------------------
+      // INFORMACIÓN DEL PEDIDO
+      // --------------------------------------------
+
       const orderData = {
+
         plan: plan,
+
         months: selectedMonths,
+
         email: email,
+
         total: total
+
       };
+
+
+      // --------------------------------------------
+      // CREAR PREFERENCIA
+      // --------------------------------------------
 
       const result =
         await preference.create({
+
           body: {
+
             items: [
+
               {
+
                 id: plan,
+
                 title:
                   `TV Digital - ${selectedPlan.name}`,
+
                 description:
                   `${selectedPlan.devices} dispositivo(s) - ${selectedMonths} mes(es)`,
+
                 quantity: 1,
+
                 currency_id: 'ARS',
+
                 unit_price: total
+
               }
+
             ],
 
+
             payer: {
+
               email: email
+
             },
+
 
             external_reference:
               JSON.stringify(orderData),
 
+
             back_urls: {
+
               success:
                 `${BASE_URL}/pago.html?estado=aprobado`,
 
@@ -220,145 +373,230 @@ app.post(
 
               failure:
                 `${BASE_URL}/pago.html?estado=rechazado`
+
             },
 
-            auto_return: 'approved',
+
+            auto_return:
+              'approved',
+
 
             notification_url:
               `${BASE_URL}/api/webhook`,
 
+
             statement_descriptor:
               'TV DIGITAL'
+
           }
+
         });
+
+
+      // --------------------------------------------
+      // VERIFICAR RESPUESTA DE MERCADO PAGO
+      // --------------------------------------------
+
+      console.log(
+        'Respuesta de Mercado Pago:',
+        result
+      );
+
 
       if (
         !result ||
         !result.init_point
       ) {
+
         console.error(
           'Mercado Pago no devolvió init_point:',
           result
         );
 
         return res.status(500).json({
+
           error:
             'Mercado Pago no devolvió un link de pago'
+
         });
+
       }
+
 
       console.log(
         'Preferencia creada correctamente'
       );
+
+
+      console.log(
+        'Link de pago:',
+        result.init_point
+      );
+
 
       console.log(
         'Notification URL:',
         `${BASE_URL}/api/webhook`
       );
 
+
+      // --------------------------------------------
+      // RESPUESTA AL INDEX
+      // --------------------------------------------
+
       return res.json({
+
         url: result.init_point,
+
         init_point: result.init_point
+
       });
 
+
     } catch (error) {
+
       console.error(
         'Error creando preferencia de Mercado Pago:',
         error
       );
 
+
       return res.status(500).json({
+
         error:
           'No se pudo crear el pago'
+
       });
+
     }
+
   }
 );
+
 
 // ======================================================
 // FUNCIÓN PARA ENVIAR CORREOS CON MAILJET
 // ======================================================
+
 async function enviarCorreo({
   destinatario,
   asunto,
   html
 }) {
+
   if (
     !MAILJET_API_KEY ||
     !MAILJET_SECRET_KEY
   ) {
+
     throw new Error(
       'Faltan MAILJET_API_KEY o MAILJET_SECRET_KEY'
     );
+
   }
 
+
   if (!FROM_EMAIL) {
+
     throw new Error(
       'Falta ADMIN_EMAIL para usarlo como remitente'
     );
+
   }
+
 
   const credentials =
     Buffer.from(
       `${MAILJET_API_KEY}:${MAILJET_SECRET_KEY}`
     ).toString('base64');
 
+
   const response =
     await fetch(
       'https://api.mailjet.com/v3.1/send',
       {
+
         method: 'POST',
 
         headers: {
+
           'Content-Type':
             'application/json',
 
           'Authorization':
             `Basic ${credentials}`
+
         },
 
         body: JSON.stringify({
+
           Messages: [
+
             {
+
               From: {
+
                 Email: FROM_EMAIL,
+
                 Name: 'TV Digital'
+
               },
 
+
               To: [
+
                 {
+
                   Email: destinatario
+
                 }
+
               ],
 
-              Subject: asunto,
+
+              Subject:
+                asunto,
+
 
               TextPart:
                 'TV Digital',
 
+
               HTMLPart:
                 html
+
             }
+
           ]
+
         })
+
       }
     );
+
 
   const data =
     await response.json();
 
+
   if (!response.ok) {
+
     throw new Error(
       JSON.stringify(data)
     );
+
   }
 
+
   return data;
+
 }
+
 
 // ======================================================
 // WEBHOOK DE MERCADO PAGO
 // ======================================================
+
 app.post(
   '/api/webhook',
   async (req, res) => {
@@ -367,156 +605,195 @@ app.post(
       '========================================'
     );
 
+
     console.log(
       'WEBHOOK MERCADO PAGO RECIBIDO'
     );
+
 
     console.log(
       'Body:',
       JSON.stringify(req.body)
     );
 
+
     console.log(
       'Query:',
       JSON.stringify(req.query)
     );
 
+
     console.log(
       '========================================'
     );
 
-    // Respondemos inmediatamente
+
+    // Respondemos inmediatamente a Mercado Pago
     res.sendStatus(200);
+
 
     try {
 
-      // --------------------------------------
-      // OBTENER TIPO DE EVENTO
-      // --------------------------------------
+      // --------------------------------------------
+      // TIPO DE EVENTO
+      // --------------------------------------------
+
       const type =
         req.body?.type ||
         req.query?.type;
+
 
       console.log(
         'Tipo de evento:',
         type
       );
 
-      // --------------------------------------
-      // SOLO PROCESAMOS PAYMENT
-      // --------------------------------------
+
       if (
         type &&
         type !== 'payment'
       ) {
+
         console.log(
           'Webhook ignorado. Tipo:',
           type
         );
 
         return;
+
       }
 
-      // --------------------------------------
+
+      // --------------------------------------------
       // OBTENER ID DEL PAGO
-      // --------------------------------------
+      // --------------------------------------------
+
       const paymentId =
         req.body?.data?.id ||
         req.query?.['data.id'] ||
         req.body?.id ||
         req.query?.id;
 
+
       console.log(
         'ID recibido:',
         paymentId
       );
 
+
       if (!paymentId) {
+
         console.log(
           'Webhook recibido sin ID de pago.'
         );
 
         return;
+
       }
 
-      // --------------------------------------
-      // EVITAR DUPLICADOS
-      // --------------------------------------
+
+      // --------------------------------------------
+      // EVITAR PROCESAR DOS VECES
+      // --------------------------------------------
+
       if (
         processedPayments.has(
           String(paymentId)
         )
       ) {
+
         console.log(
           'Pago ya procesado. No se enviarán correos nuevamente:',
           paymentId
         );
 
         return;
+
       }
 
-      // --------------------------------------
-      // COMPROBAR CREDENCIALES
-      // --------------------------------------
+
+      // --------------------------------------------
+      // VERIFICAR CREDENCIALES
+      // --------------------------------------------
+
       if (!ACCESS_TOKEN) {
+
         console.error(
           'Falta MP_ACCESS_TOKEN en Render.'
         );
 
         return;
+
       }
+
 
       if (
         !MAILJET_API_KEY ||
         !MAILJET_SECRET_KEY
       ) {
+
         console.error(
           'Faltan las credenciales de Mailjet.'
         );
 
         return;
+
       }
 
+
       if (!ADMIN_EMAIL) {
+
         console.error(
           'Falta ADMIN_EMAIL en Render.'
         );
 
         return;
+
       }
 
-      // --------------------------------------
-      // CONSULTAR PAGO REAL
-      // --------------------------------------
+
+      // --------------------------------------------
+      // CONSULTAR PAGO A MERCADO PAGO
+      // --------------------------------------------
+
       console.log(
         'Consultando pago:',
         paymentId
       );
 
+
       const response =
         await fetch(
           `https://api.mercadopago.com/v1/payments/${paymentId}`,
           {
+
             method: 'GET',
 
             headers: {
+
               Authorization:
                 `Bearer ${ACCESS_TOKEN}`,
 
               'Content-Type':
                 'application/json'
+
             }
+
           }
         );
+
 
       console.log(
         'Respuesta de Mercado Pago:',
         response.status
       );
 
+
       if (!response.ok) {
+
         const errorText =
           await response.text();
+
 
         console.error(
           'No se pudo consultar el pago:',
@@ -525,128 +802,160 @@ app.post(
         );
 
         return;
+
       }
+
 
       const payment =
         await response.json();
+
 
       console.log(
         'Pago recibido:',
         JSON.stringify(payment)
       );
 
+
       console.log(
         'Estado del pago:',
         payment.status
       );
 
-      // --------------------------------------
-      // SOLO PAGOS APROBADOS
-      // --------------------------------------
+
+      // --------------------------------------------
+      // SOLO PROCESAR PAGOS APROBADOS
+      // --------------------------------------------
+
       if (
         payment.status !== 'approved'
       ) {
+
         console.log(
           'Pago todavía no aprobado:',
           payment.status
         );
 
         return;
+
       }
+
 
       console.log(
         'PAGO APROBADO. PROCESANDO CORREOS...'
       );
 
-      // --------------------------------------
-      // MARCAR PAGO COMO PROCESADO
-      // --------------------------------------
+
       processedPayments.add(
         String(paymentId)
       );
 
-      // --------------------------------------
-      // RECUPERAR INFORMACIÓN
-      // --------------------------------------
+
+      // --------------------------------------------
+      // RECUPERAR DATOS DEL PEDIDO
+      // --------------------------------------------
+
       let order = {};
 
+
       try {
+
         order =
           JSON.parse(
             payment.external_reference ||
             '{}'
           );
+
       } catch (error) {
+
         console.error(
           'No se pudo interpretar external_reference:',
           error
         );
+
       }
+
 
       const plan =
         plans[order.plan];
+
 
       const planName =
         plan
           ? plan.name
           : 'Plan no identificado';
 
+
       const devices =
         plan
           ? plan.devices
           : '-';
 
+
       const months =
         order.months ||
         '-';
+
 
       const total =
         order.total ||
         payment.transaction_amount ||
         '-';
 
+
       const customerEmail =
         order.email ||
         payment.payer?.email ||
         'No disponible';
+
 
       console.log(
         'Cliente:',
         customerEmail
       );
 
+
       console.log(
         'Plan:',
         planName
       );
+
+
+      console.log(
+        'Dispositivos:',
+        devices
+      );
+
 
       console.log(
         'Duración:',
         months
       );
 
+
       console.log(
         'Total:',
         total
       );
 
+
       // ==================================================
       // CORREO AL ADMINISTRADOR
       // ==================================================
-      console.log(
-        'Enviando correo al administrador...'
-      );
 
       try {
 
         await enviarCorreo({
+
           destinatario:
             ADMIN_EMAIL,
+
 
           asunto:
             'Nuevo pago recibido - TV Digital',
 
+
           html: `
+
             <h2>
               Nuevo pago recibido
             </h2>
@@ -698,12 +1007,16 @@ app.post(
               Este correo fue generado automáticamente
               por TV Digital.
             </p>
+
           `
+
         });
+
 
         console.log(
           'CORREO ENVIADO CORRECTAMENTE AL ADMINISTRADOR.'
         );
+
 
       } catch (error) {
 
@@ -711,11 +1024,14 @@ app.post(
           'ERROR enviando correo al administrador:',
           error
         );
+
       }
+
 
       // ==================================================
       // CORREO AL CLIENTE
       // ==================================================
+
       if (
         customerEmail &&
         customerEmail !== 'No disponible'
@@ -726,16 +1042,21 @@ app.post(
           customerEmail
         );
 
+
         try {
 
           await enviarCorreo({
+
             destinatario:
               customerEmail,
+
 
             asunto:
               '¡Pago recibido! - TV Digital',
 
+
             html: `
+
               <h2>
                 ¡Gracias por tu compra!
               </h2>
@@ -784,12 +1105,16 @@ app.post(
               <p>
                 Gracias por elegir TV Digital.
               </p>
+
             `
+
           });
+
 
           console.log(
             'CORREO ENVIADO CORRECTAMENTE AL CLIENTE.'
           );
+
 
         } catch (error) {
 
@@ -797,26 +1122,33 @@ app.post(
             'ERROR enviando correo al cliente:',
             error
           );
+
         }
+
 
       } else {
 
         console.error(
           'No se pudo determinar el Gmail del cliente.'
         );
+
       }
+
 
       console.log(
         '========================================'
       );
+
 
       console.log(
         'WEBHOOK PROCESADO COMPLETAMENTE'
       );
 
+
       console.log(
         '========================================'
       );
+
 
     } catch (error) {
 
@@ -824,31 +1156,44 @@ app.post(
         'ERROR PROCESANDO WEBHOOK:',
         error
       );
+
     }
+
   }
 );
+
 
 // ======================================================
 // HEALTH CHECK
 // ======================================================
+
 app.get(
   '/health',
   (req, res) => {
+
     res.json({
+
       ok: true,
+
       servicio: 'TV Digital'
+
     });
+
   }
 );
+
 
 // ======================================================
 // INICIAR SERVIDOR
 // ======================================================
+
 app.listen(
   PORT,
   () => {
+
     console.log(
       `TV Digital server listening on ${PORT}`
     );
+
   }
 );
