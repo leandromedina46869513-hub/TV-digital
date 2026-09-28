@@ -1341,10 +1341,16 @@ botonPublicar.addEventListener('click', function() {
     <p>${comentario}</p>
   `;
 
-  listaComentarios.insertBefore(
-    nuevaOpinion,
-    listaComentarios.firstChild
-  );
+  const mensajeVacio = listaComentarios.querySelector('.empty');
+
+if (mensajeVacio) {
+  mensajeVacio.parentElement.remove();
+}
+
+listaComentarios.insertBefore(
+  nuevaOpinion,
+  listaComentarios.firstChild
+);
 
 
   nombreInput.value = '';
