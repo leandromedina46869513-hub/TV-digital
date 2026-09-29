@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
+import admin from 'firebase-admin';
 
 const app = express();
 
@@ -11,10 +12,6 @@ const __dirname = path.dirname(__filename);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ======================================================
-// ARCHIVOS DE LA PÁGINA
-// ======================================================
-
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
@@ -23,91 +20,102 @@ app.get('/', (req, res) => {
   );
 });
 
-
-// ======================================================
-// CONFIGURACIÓN TV DIGITAL
-// ======================================================
-//
-// PARA MODIFICAR PRECIOS, DESCUENTOS O DOWNLOADER,
-// SOLAMENTE CAMBIÁ LOS VALORES DE ESTA PARTE.
-//
-// NO ES NECESARIO TOCAR EL RESTO DEL ARCHIVO.
-//
-// ======================================================
+/* =========================================================
+   CONFIGURACIÓN TV DIGITAL
+========================================================= */
 
 const CONFIG = {
-
-  // --------------------------------------------
-  // PRECIOS MENSUALES
-  // --------------------------------------------
-
   precios: {
-    comun: 1,        // 1 dispositivo
-    pareja: 10000,   // 2 dispositivos
-    familiar: 15000  // 4 dispositivos
+    comun: 1,
+    pareja: 10000,
+    familiar: 15000
   },
-
-
-  // --------------------------------------------
-  // DESCUENTOS SEGÚN CANTIDAD DE MESES
-  //
-  // 0.10 = 10%
-  // 0.20 = 20%
-  // 0.35 = 35%
-  // --------------------------------------------
 
   descuentos: {
-    1: 0,       // 1 mes
-    3: 0.10,    // 3 meses
-    6: 0.20,    // 6 meses
-    12: 0.35    // 12 meses
+    1: 0,
+    3: 0.10,
+    6: 0.20,
+    12: 0.35
   },
 
-
-  // --------------------------------------------
-  // CÓDIGO DOWNLOADER
-  // --------------------------------------------
-
   downloader: '6590043'
-
 };
 
-
-// ======================================================
-// CONFIGURACIÓN DEL SERVIDOR
-// ======================================================
+/* =========================================================
+   VARIABLES DE ENTORNO
+========================================================= */
 
 const PORT = process.env.PORT || 3000;
 
 const ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
-
 const BASE_URL = process.env.BASE_URL;
 
+const MAILJET_API_KEY = process.env.MAILJET_API_KEY;
+const MAILJET_SECRET_KEY = process.env.MAILJET_SECRET_KEY;
 
-// ======================================================
-// CONFIGURACIÓN MAILJET
-// ======================================================
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+const FROM_EMAIL = process.env.ADMIN_EMAIL;
 
-const MAILJET_API_KEY =
-  process.env.MAILJET_API_KEY;
+const FIREBASE_DATABASE_URL =
+  process.env.FIREBASE_DATABASE_URL;
 
-const MAILJET_SECRET_KEY =
-  process.env.MAILJET_SECRET_KEY;
+const FIREBASE_SERVICE_ACCOUNT =
+  process.env.FIREBASE_SERVICE_ACCOUNT;
 
-const ADMIN_EMAIL =
-  process.env.ADMIN_EMAIL;
+/* =========================================================
+   FIREBASE
+========================================================= */
 
-const FROM_EMAIL =
-  process.env.ADMIN_EMAIL;
+let db = null;
 
+try {
 
-// ======================================================
-// PLANES
-// ======================================================
-//
-// Estos valores salen automáticamente de CONFIG.
-// No hace falta modificar esta parte.
-// ======================================================
+  if (
+    FIREBASE_DATABASE_URL &&
+    FIREBASE_SERVICE_ACCOUNT
+  ) {
+
+    const serviceAccount =
+      JSON.parse(FIREBASE_SERVICE_ACCOUNT);
+
+    if (!admin.apps.length) {
+
+      admin.initializeApp({
+        credential:
+          admin.credential.cert(serviceAccount),
+
+        databaseURL:
+          FIREBASE_DATABASE_URL
+      });
+
+    }
+
+    db = admin.database();
+
+    console.log(
+      'Firebase conectado correctamente'
+    );
+
+  } else {
+
+    console.warn(
+      'Firebase no está configurado todavía.'
+    );
+
+  }
+
+} catch (error) {
+
+  console.error(
+    'Error al conectar Firebase:',
+    error.message
+  );
+
+}
+
+/* =========================================================
+   PLANES
+========================================================= */
 
 const plans = {
 
@@ -131,29 +139,13 @@ const plans = {
 
 };
 
-
 const discounts = CONFIG.descuentos;
-
-
-// ======================================================
-// PAGOS YA PROCESADOS
-// ======================================================
 
 const processedPayments = new Set();
 
-
-// ======================================================
-// API DE CONFIGURACIÓN
-// ======================================================
-//
-// El index.html puede consultar esta ruta para obtener:
-// - precios
-// - descuentos
-// - código Downloader
-//
-// Así el index no necesita tener esos valores escritos
-// manualmente.
-// ======================================================
+/* =========================================================
+   CONFIGURACIÓN PARA FRONTEND
+========================================================= */
 
 app.get('/api/config', (req, res) => {
 
@@ -169,10 +161,9 @@ app.get('/api/config', (req, res) => {
 
 });
 
-
-// ======================================================
-// CREAR PREFERENCIA DE MERCADO PAGO
-// ======================================================
+/* =========================================================
+   CREAR PREFERENCIA MERCADO PAGO
+========================================================= */
 
 app.post(
   '/api/create-preference',
@@ -181,33 +172,27 @@ app.post(
     try {
 
       console.log(
-        'Solicitud para crear preferencia:',
+        'Solicitud de creación de preferencia:',
         req.body
       );
 
-
-      // --------------------------------------------
-      // VERIFICAR CONFIGURACIÓN
-      // --------------------------------------------
-
-      if (!ACCESS_TOKEN || !BASE_URL) {
-
-        console.error(
-          'Falta MP_ACCESS_TOKEN o BASE_URL'
-        );
+      if (!ACCESS_TOKEN) {
 
         return res.status(500).json({
-
-          error: 'Servidor no configurado'
-
+          error:
+            'Mercado Pago no está configurado.'
         });
 
       }
 
+      if (!BASE_URL) {
 
-      // --------------------------------------------
-      // DATOS RECIBIDOS
-      // --------------------------------------------
+        return res.status(500).json({
+          error:
+            'BASE_URL no está configurado.'
+        });
+
+      }
 
       const {
         plan,
@@ -215,62 +200,59 @@ app.post(
         email
       } = req.body;
 
-
       const selectedPlan =
         plans[plan];
-
 
       const selectedMonths =
         Number(months);
 
-
-      // --------------------------------------------
-      // VALIDAR DATOS
-      // --------------------------------------------
-
-      if (
-        !selectedPlan ||
-        discounts[selectedMonths] === undefined ||
-        !/^\S+@\S+\.\S+$/.test(email || '')
-      ) {
-
-        console.error(
-          'Datos inválidos:',
-          req.body
-        );
+      if (!selectedPlan) {
 
         return res.status(400).json({
-
-          error: 'Datos inválidos'
-
+          error:
+            'Plan inválido.'
         });
 
       }
 
+      if (
+        !discounts.hasOwnProperty(
+          selectedMonths
+        )
+      ) {
 
-      // --------------------------------------------
-      // CALCULAR TOTAL
-      // --------------------------------------------
+        return res.status(400).json({
+          error:
+            'Cantidad de meses inválida.'
+        });
+
+      }
+
+      if (
+        !email ||
+        !/^\S+@\S+\.\S+$/.test(email)
+      ) {
+
+        return res.status(400).json({
+          error:
+            'Email inválido.'
+        });
+
+      }
+
+      const descuento =
+        discounts[selectedMonths];
 
       const total =
         Math.round(
           selectedPlan.monthly *
           selectedMonths *
-          (
-            1 -
-            discounts[selectedMonths]
-          )
+          (1 - descuento)
         );
-
 
       console.log(
         'Plan:',
         selectedPlan.name
-      );
-
-      console.log(
-        'Precio mensual:',
-        selectedPlan.monthly
       );
 
       console.log(
@@ -279,50 +261,37 @@ app.post(
       );
 
       console.log(
-        'Descuento:',
-        discounts[selectedMonths]
+        'Email:',
+        email
       );
 
       console.log(
-        'Total calculado:',
+        'Total:',
         total
       );
 
-
-      // --------------------------------------------
-      // CONEXIÓN CON MERCADO PAGO
-      // --------------------------------------------
-
       const client =
         new MercadoPagoConfig({
-          accessToken: ACCESS_TOKEN
+          accessToken:
+            ACCESS_TOKEN
         });
-
 
       const preference =
         new Preference(client);
 
+      const externalReference =
+        JSON.stringify({
 
-      // --------------------------------------------
-      // INFORMACIÓN DEL PEDIDO
-      // --------------------------------------------
+          plan,
 
-      const orderData = {
+          months:
+            selectedMonths,
 
-        plan: plan,
+          email,
 
-        months: selectedMonths,
+          total
 
-        email: email,
-
-        total: total
-
-      };
-
-
-      // --------------------------------------------
-      // CREAR PREFERENCIA
-      // --------------------------------------------
+        });
 
       const result =
         await preference.create({
@@ -333,7 +302,8 @@ app.post(
 
               {
 
-                id: plan,
+                id:
+                  plan,
 
                 title:
                   `TV Digital - ${selectedPlan.name}`,
@@ -343,25 +313,25 @@ app.post(
 
                 quantity: 1,
 
-                currency_id: 'ARS',
+                currency_id:
+                  'ARS',
 
-                unit_price: total
+                unit_price:
+                  total
 
               }
 
             ],
 
-
             payer: {
 
-              email: email
+              email:
+                email
 
             },
 
-
             external_reference:
-              JSON.stringify(orderData),
-
+              externalReference,
 
             back_urls: {
 
@@ -376,14 +346,11 @@ app.post(
 
             },
 
-
             auto_return:
               'approved',
 
-
             notification_url:
               `${BASE_URL}/api/webhook`,
-
 
             statement_descriptor:
               'TV DIGITAL'
@@ -392,79 +359,57 @@ app.post(
 
         });
 
-
-      // --------------------------------------------
-      // VERIFICAR RESPUESTA DE MERCADO PAGO
-      // --------------------------------------------
-
       console.log(
-        'Respuesta de Mercado Pago:',
-        result
+        'Preferencia creada correctamente'
       );
 
+      console.log(
+        'ID preferencia:',
+        result.id
+      );
 
-      if (
-        !result ||
-        !result.init_point
-      ) {
+      console.log(
+        'init_point:',
+        result.init_point
+      );
+
+      if (!result.init_point) {
 
         console.error(
-          'Mercado Pago no devolvió init_point:',
-          result
+          'Mercado Pago no devolvió init_point'
         );
 
         return res.status(500).json({
 
           error:
-            'Mercado Pago no devolvió un link de pago'
+            'Mercado Pago no devolvió el enlace de pago.'
 
         });
 
       }
 
-
-      console.log(
-        'Preferencia creada correctamente'
-      );
-
-
-      console.log(
-        'Link de pago:',
-        result.init_point
-      );
-
-
-      console.log(
-        'Notification URL:',
-        `${BASE_URL}/api/webhook`
-      );
-
-
-      // --------------------------------------------
-      // RESPUESTA AL INDEX
-      // --------------------------------------------
-
       return res.json({
 
-        url: result.init_point,
+        url:
+          result.init_point,
 
-        init_point: result.init_point
+        init_point:
+          result.init_point
 
       });
-
 
     } catch (error) {
 
       console.error(
-        'Error creando preferencia de Mercado Pago:',
+        'Error creando preferencia:',
         error
       );
-
 
       return res.status(500).json({
 
         error:
-          'No se pudo crear el pago'
+          error.message ||
+          'No se pudo crear el pago.'
 
       });
 
@@ -473,10 +418,9 @@ app.post(
   }
 );
 
-
-// ======================================================
-// FUNCIÓN PARA ENVIAR CORREOS CON MAILJET
-// ======================================================
+/* =========================================================
+   MAILJET
+========================================================= */
 
 async function enviarCorreo({
   destinatario,
@@ -490,28 +434,17 @@ async function enviarCorreo({
   ) {
 
     throw new Error(
-      'Faltan MAILJET_API_KEY o MAILJET_SECRET_KEY'
+      'Mailjet no está configurado.'
     );
 
   }
 
-
-  if (!FROM_EMAIL) {
-
-    throw new Error(
-      'Falta ADMIN_EMAIL para usarlo como remitente'
-    );
-
-  }
-
-
-  const credentials =
+  const credenciales =
     Buffer.from(
       `${MAILJET_API_KEY}:${MAILJET_SECRET_KEY}`
     ).toString('base64');
 
-
-  const response =
+  const respuesta =
     await fetch(
       'https://api.mailjet.com/v3.1/send',
       {
@@ -520,181 +453,135 @@ async function enviarCorreo({
 
         headers: {
 
-          'Content-Type':
-            'application/json',
-
           'Authorization':
-            `Basic ${credentials}`
+            `Basic ${credenciales}`,
+
+          'Content-Type':
+            'application/json'
 
         },
 
-        body: JSON.stringify({
+        body:
+          JSON.stringify({
 
-          Messages: [
+            Messages: [
 
-            {
+              {
 
-              From: {
+                From: {
 
-                Email: FROM_EMAIL,
+                  Email:
+                    FROM_EMAIL,
 
-                Name: 'TV Digital'
+                  Name:
+                    'TV Digital'
 
-              },
+                },
 
+                To: [
 
-              To: [
+                  {
 
-                {
+                    Email:
+                      destinatario
 
-                  Email: destinatario
+                  }
 
-                }
+                ],
 
-              ],
+                Subject:
+                  asunto,
 
+                HTMLPart:
+                  html
 
-              Subject:
-                asunto,
+              }
 
+            ]
 
-              TextPart:
-                'TV Digital',
-
-
-              HTMLPart:
-                html
-
-            }
-
-          ]
-
-        })
+          })
 
       }
     );
 
+  const texto =
+    await respuesta.text();
 
-  const data =
-    await response.json();
-
-
-  if (!response.ok) {
+  if (!respuesta.ok) {
 
     throw new Error(
-      JSON.stringify(data)
+      `Mailjet error ${respuesta.status}: ${texto}`
     );
 
   }
 
-
-  return data;
+  return texto;
 
 }
 
-
-// ======================================================
-// WEBHOOK DE MERCADO PAGO
-// ======================================================
+/* =========================================================
+   WEBHOOK MERCADO PAGO
+========================================================= */
 
 app.post(
   '/api/webhook',
   async (req, res) => {
 
     console.log(
-      '========================================'
+      '================ WEBHOOK ================'
     );
-
-
-    console.log(
-      'WEBHOOK MERCADO PAGO RECIBIDO'
-    );
-
 
     console.log(
       'Body:',
-      JSON.stringify(req.body)
+      req.body
     );
-
 
     console.log(
       'Query:',
-      JSON.stringify(req.query)
+      req.query
     );
 
+    /*
+      Mercado Pago necesita recibir rápidamente
+      una respuesta 200.
+    */
 
-    console.log(
-      '========================================'
-    );
-
-
-    // Respondemos inmediatamente a Mercado Pago
     res.sendStatus(200);
-
 
     try {
 
-      // --------------------------------------------
-      // TIPO DE EVENTO
-      // --------------------------------------------
-
-      const type =
+      const tipo =
         req.body?.type ||
         req.query?.type;
 
-
-      console.log(
-        'Tipo de evento:',
-        type
-      );
-
-
       if (
-        type &&
-        type !== 'payment'
+        tipo &&
+        tipo !== 'payment'
       ) {
 
         console.log(
-          'Webhook ignorado. Tipo:',
-          type
+          'Notificación ignorada. Tipo:',
+          tipo
         );
 
         return;
 
       }
 
-
-      // --------------------------------------------
-      // OBTENER ID DEL PAGO
-      // --------------------------------------------
-
       const paymentId =
         req.body?.data?.id ||
-        req.query?.['data.id'] ||
         req.body?.id ||
-        req.query?.id;
-
-
-      console.log(
-        'ID recibido:',
-        paymentId
-      );
-
+        req.query?.['data.id'];
 
       if (!paymentId) {
 
         console.log(
-          'Webhook recibido sin ID de pago.'
+          'Webhook sin ID de pago.'
         );
 
         return;
 
       }
-
-
-      // --------------------------------------------
-      // EVITAR PROCESAR DOS VECES
-      // --------------------------------------------
 
       if (
         processedPayments.has(
@@ -703,7 +590,7 @@ app.post(
       ) {
 
         console.log(
-          'Pago ya procesado. No se enviarán correos nuevamente:',
+          'Pago ya procesado:',
           paymentId
         );
 
@@ -711,21 +598,15 @@ app.post(
 
       }
 
-
-      // --------------------------------------------
-      // VERIFICAR CREDENCIALES
-      // --------------------------------------------
-
       if (!ACCESS_TOKEN) {
 
         console.error(
-          'Falta MP_ACCESS_TOKEN en Render.'
+          'MP_ACCESS_TOKEN no configurado.'
         );
 
         return;
 
       }
-
 
       if (
         !MAILJET_API_KEY ||
@@ -733,133 +614,84 @@ app.post(
       ) {
 
         console.error(
-          'Faltan las credenciales de Mailjet.'
+          'Mailjet no configurado.'
         );
 
         return;
 
       }
-
 
       if (!ADMIN_EMAIL) {
 
         console.error(
-          'Falta ADMIN_EMAIL en Render.'
+          'ADMIN_EMAIL no configurado.'
         );
 
         return;
 
       }
-
-
-      // --------------------------------------------
-      // CONSULTAR PAGO A MERCADO PAGO
-      // --------------------------------------------
 
       console.log(
         'Consultando pago:',
         paymentId
       );
 
-
-      const response =
+      const respuestaPago =
         await fetch(
           `https://api.mercadopago.com/v1/payments/${paymentId}`,
           {
 
-            method: 'GET',
-
             headers: {
 
               Authorization:
-                `Bearer ${ACCESS_TOKEN}`,
-
-              'Content-Type':
-                'application/json'
+                `Bearer ${ACCESS_TOKEN}`
 
             }
 
           }
         );
 
-
-      console.log(
-        'Respuesta de Mercado Pago:',
-        response.status
-      );
-
-
-      if (!response.ok) {
-
-        const errorText =
-          await response.text();
-
+      if (!respuestaPago.ok) {
 
         console.error(
-          'No se pudo consultar el pago:',
-          response.status,
-          errorText
+          'Error consultando Mercado Pago:',
+          respuestaPago.status
         );
 
         return;
 
       }
 
-
       const payment =
-        await response.json();
-
-
-      console.log(
-        'Pago recibido:',
-        JSON.stringify(payment)
-      );
-
+        await respuestaPago.json();
 
       console.log(
         'Estado del pago:',
         payment.status
       );
 
-
-      // --------------------------------------------
-      // SOLO PROCESAR PAGOS APROBADOS
-      // --------------------------------------------
-
       if (
-        payment.status !== 'approved'
+        payment.status !==
+        'approved'
       ) {
 
         console.log(
-          'Pago todavía no aprobado:',
-          payment.status
+          'El pago todavía no está aprobado.'
         );
 
         return;
 
       }
 
-
-      console.log(
-        'PAGO APROBADO. PROCESANDO CORREOS...'
-      );
-
-
       processedPayments.add(
         String(paymentId)
       );
 
-
-      // --------------------------------------------
-      // RECUPERAR DATOS DEL PEDIDO
-      // --------------------------------------------
-
-      let order = {};
-
+      let datosReferencia = {};
 
       try {
 
-        order =
+        datosReferencia =
           JSON.parse(
             payment.external_reference ||
             '{}'
@@ -868,292 +700,254 @@ app.post(
       } catch (error) {
 
         console.error(
-          'No se pudo interpretar external_reference:',
-          error
+          'No se pudo leer external_reference.'
         );
 
       }
 
-
       const plan =
-        plans[order.plan];
-
-
-      const planName =
-        plan
-          ? plan.name
-          : 'Plan no identificado';
-
-
-      const devices =
-        plan
-          ? plan.devices
-          : '-';
-
+        datosReferencia.plan ||
+        'comun';
 
       const months =
-        order.months ||
-        '-';
-
-
-      const total =
-        order.total ||
-        payment.transaction_amount ||
-        '-';
-
+        Number(
+          datosReferencia.months ||
+          1
+        );
 
       const customerEmail =
-        order.email ||
+        datosReferencia.email ||
         payment.payer?.email ||
-        'No disponible';
+        '';
 
+      const total =
+        datosReferencia.total ||
+        payment.transaction_amount ||
+        0;
+
+      const selectedPlan =
+        plans[plan];
+
+      const planName =
+        selectedPlan?.name ||
+        plan;
+
+      const devices =
+        selectedPlan?.devices ||
+        1;
+
+      console.log(
+        'Pago aprobado.'
+      );
 
       console.log(
         'Cliente:',
         customerEmail
       );
 
-
       console.log(
         'Plan:',
         planName
       );
-
 
       console.log(
         'Dispositivos:',
         devices
       );
 
-
       console.log(
-        'Duración:',
+        'Meses:',
         months
       );
-
 
       console.log(
         'Total:',
         total
       );
 
+      /* =====================================================
+         GUARDAR TAMBIÉN LA COMPRA EN FIREBASE
+      ===================================================== */
 
-      // ==================================================
-      // CORREO AL ADMINISTRADOR
-      // ==================================================
-
-      try {
-
-        await enviarCorreo({
-
-          destinatario:
-            ADMIN_EMAIL,
-
-
-          asunto:
-            'Nuevo pago recibido - TV Digital',
-
-
-          html: `
-
-            <h2>
-              Nuevo pago recibido
-            </h2>
-
-            <p>
-              Se recibió un nuevo pago aprobado.
-            </p>
-
-            <hr>
-
-            <p>
-              <strong>Cliente:</strong>
-              ${customerEmail}
-            </p>
-
-            <p>
-              <strong>Plan:</strong>
-              ${planName}
-            </p>
-
-            <p>
-              <strong>Dispositivos:</strong>
-              ${devices}
-            </p>
-
-            <p>
-              <strong>Duración:</strong>
-              ${months} mes(es)
-            </p>
-
-            <p>
-              <strong>Total:</strong>
-              $${total} ARS
-            </p>
-
-            <p>
-              <strong>ID de pago:</strong>
-              ${payment.id}
-            </p>
-
-            <p>
-              <strong>Estado:</strong>
-              APROBADO
-            </p>
-
-            <hr>
-
-            <p>
-              Este correo fue generado automáticamente
-              por TV Digital.
-            </p>
-
-          `
-
-        });
-
-
-        console.log(
-          'CORREO ENVIADO CORRECTAMENTE AL ADMINISTRADOR.'
-        );
-
-
-      } catch (error) {
-
-        console.error(
-          'ERROR enviando correo al administrador:',
-          error
-        );
-
-      }
-
-
-      // ==================================================
-      // CORREO AL CLIENTE
-      // ==================================================
-
-      if (
-        customerEmail &&
-        customerEmail !== 'No disponible'
-      ) {
-
-        console.log(
-          'Enviando correo al cliente:',
-          customerEmail
-        );
-
+      if (db) {
 
         try {
 
-          await enviarCorreo({
+          await db
+            .ref('compras')
+            .push({
 
-            destinatario:
-              customerEmail,
+              paymentId:
+                String(paymentId),
 
+              email:
+                customerEmail,
 
-            asunto:
-              '¡Pago recibido! - TV Digital',
+              plan:
+                planName,
 
+              planId:
+                plan,
 
-            html: `
+              dispositivos:
+                devices,
 
-              <h2>
-                ¡Gracias por tu compra!
-              </h2>
+              meses:
+                months,
 
-              <p>
-                Recibimos correctamente tu pago
-                de TV Digital.
-              </p>
+              total:
+                total,
 
-              <p>
-                Tu suscripción fue aprobada.
-              </p>
+              estado:
+                'approved',
 
-              <hr>
+              fecha:
+                new Date().toISOString()
 
-              <p>
-                <strong>Plan:</strong>
-                ${planName}
-              </p>
-
-              <p>
-                <strong>Dispositivos:</strong>
-                ${devices}
-              </p>
-
-              <p>
-                <strong>Duración:</strong>
-                ${months} mes(es)
-              </p>
-
-              <p>
-                <strong>Total:</strong>
-                $${total} ARS
-              </p>
-
-              <hr>
-
-              <p>
-                En breve te enviaremos tu
-                <strong>
-                  cuenta y contraseña de acceso
-                </strong>
-                para que puedas ingresar al servicio.
-              </p>
-
-              <p>
-                Gracias por elegir TV Digital.
-              </p>
-
-            `
-
-          });
-
+            });
 
           console.log(
-            'CORREO ENVIADO CORRECTAMENTE AL CLIENTE.'
+            'Compra guardada en Firebase.'
           );
 
-
-        } catch (error) {
+        } catch (firebaseError) {
 
           console.error(
-            'ERROR enviando correo al cliente:',
-            error
+            'Error guardando compra en Firebase:',
+            firebaseError.message
           );
 
         }
 
+      }
 
-      } else {
+      /* =====================================================
+         EMAIL AL ADMINISTRADOR
+      ===================================================== */
 
-        console.error(
-          'No se pudo determinar el Gmail del cliente.'
+      const htmlAdmin = `
+
+        <h2>📺 Nueva compra de TV Digital</h2>
+
+        <p>
+          <strong>Cliente:</strong>
+          ${customerEmail}
+        </p>
+
+        <p>
+          <strong>Plan:</strong>
+          ${planName}
+        </p>
+
+        <p>
+          <strong>Dispositivos:</strong>
+          ${devices}
+        </p>
+
+        <p>
+          <strong>Duración:</strong>
+          ${months} mes(es)
+        </p>
+
+        <p>
+          <strong>Total:</strong>
+          $${Number(total).toLocaleString('es-AR')} ARS
+        </p>
+
+        <p>
+          <strong>ID de pago:</strong>
+          ${paymentId}
+        </p>
+
+        <p>
+          El pago fue aprobado correctamente.
+        </p>
+
+      `;
+
+      await enviarCorreo({
+
+        destinatario:
+          ADMIN_EMAIL,
+
+        asunto:
+          '📺 Nueva compra aprobada - TV Digital',
+
+        html:
+          htmlAdmin
+
+      });
+
+      console.log(
+        'Email enviado al administrador.'
+      );
+
+      /* =====================================================
+         EMAIL AL CLIENTE
+      ===================================================== */
+
+      if (customerEmail) {
+
+        const htmlCliente = `
+
+          <h2>📺 TV Digital</h2>
+
+          <p>
+            ¡Gracias por tu compra!
+          </p>
+
+          <p>
+            Tu pago fue aprobado correctamente.
+          </p>
+
+          <p>
+            <strong>Plan:</strong>
+            ${planName}
+          </p>
+
+          <p>
+            <strong>Duración:</strong>
+            ${months} mes(es)
+          </p>
+
+          <p>
+            En breve te enviaremos tu cuenta
+            y contraseña de acceso.
+          </p>
+
+          <p>
+            Gracias por elegir TV Digital.
+          </p>
+
+        `;
+
+        await enviarCorreo({
+
+          destinatario:
+            customerEmail,
+
+          asunto:
+            '📺 Compra aprobada - TV Digital',
+
+          html:
+            htmlCliente
+
+        });
+
+        console.log(
+          'Email enviado al cliente.'
         );
 
       }
 
-
       console.log(
-        '========================================'
+        'Webhook procesado correctamente.'
       );
-
-
-      console.log(
-        'WEBHOOK PROCESADO COMPLETAMENTE'
-      );
-
-
-      console.log(
-        '========================================'
-      );
-
 
     } catch (error) {
 
       console.error(
-        'ERROR PROCESANDO WEBHOOK:',
+        'Error procesando webhook:',
         error
       );
 
@@ -1162,10 +956,251 @@ app.post(
   }
 );
 
+/* =========================================================
+   OBTENER COMENTARIOS
+========================================================= */
 
-// ======================================================
-// HEALTH CHECK
-// ======================================================
+app.get(
+  '/api/reviews',
+  async (req, res) => {
+
+    try {
+
+      if (!db) {
+
+        return res.status(503).json({
+
+          error:
+            'Firebase no está configurado.'
+
+        });
+
+      }
+
+      const snapshot =
+        await db
+          .ref('comentarios')
+          .once('value');
+
+      const datos =
+        snapshot.val() || {};
+
+      const comentarios =
+        Object.entries(datos)
+          .map(
+            ([id, comentario]) => ({
+
+              id,
+
+              nombre:
+                comentario.nombre ||
+                '',
+
+              calificacion:
+                Number(
+                  comentario.calificacion ||
+                  0
+                ),
+
+              comentario:
+                comentario.comentario ||
+                '',
+
+              fecha:
+                comentario.fecha ||
+                ''
+
+            })
+          )
+          .sort(
+            (a, b) =>
+              new Date(b.fecha) -
+              new Date(a.fecha)
+          );
+
+      return res.json(
+        comentarios
+      );
+
+    } catch (error) {
+
+      console.error(
+        'Error obteniendo comentarios:',
+        error
+      );
+
+      return res.status(500).json({
+
+        error:
+          'No se pudieron cargar los comentarios.'
+
+      });
+
+    }
+
+  }
+);
+
+/* =========================================================
+   PUBLICAR COMENTARIO
+========================================================= */
+
+app.post(
+  '/api/reviews',
+  async (req, res) => {
+
+    try {
+
+      if (!db) {
+
+        return res.status(503).json({
+
+          error:
+            'Firebase no está configurado.'
+
+        });
+
+      }
+
+      let {
+        nombre,
+        calificacion,
+        comentario
+      } = req.body;
+
+      nombre =
+        String(nombre || '')
+          .trim();
+
+      comentario =
+        String(comentario || '')
+          .trim();
+
+      calificacion =
+        Number(calificacion);
+
+      if (!nombre) {
+
+        return res.status(400).json({
+
+          error:
+            'Ingresá tu nombre.'
+
+        });
+
+      }
+
+      if (
+        !Number.isInteger(
+          calificacion
+        ) ||
+        calificacion < 1 ||
+        calificacion > 5
+      ) {
+
+        return res.status(400).json({
+
+          error:
+            'La calificación debe ser de 1 a 5.'
+
+        });
+
+      }
+
+      if (!comentario) {
+
+        return res.status(400).json({
+
+          error:
+            'Escribí un comentario.'
+
+        });
+
+      }
+
+      /*
+        Límites para evitar entradas
+        exageradamente grandes.
+      */
+
+      if (nombre.length > 60) {
+
+        return res.status(400).json({
+
+          error:
+            'El nombre es demasiado largo.'
+
+        });
+
+      }
+
+      if (comentario.length > 500) {
+
+        return res.status(400).json({
+
+          error:
+            'El comentario es demasiado largo.'
+
+        });
+
+      }
+
+      const nuevoComentario = {
+
+        nombre,
+
+        calificacion,
+
+        comentario,
+
+        fecha:
+          new Date().toISOString()
+
+      };
+
+      const referencia =
+        await db
+          .ref('comentarios')
+          .push(
+            nuevoComentario
+          );
+
+      console.log(
+        'Comentario guardado:',
+        referencia.key
+      );
+
+      return res.status(201).json({
+
+        id:
+          referencia.key,
+
+        ...nuevoComentario
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        'Error guardando comentario:',
+        error
+      );
+
+      return res.status(500).json({
+
+        error:
+          'No se pudo guardar el comentario.'
+
+      });
+
+    }
+
+  }
+);
+
+/* =========================================================
+   HEALTH CHECK
+========================================================= */
 
 app.get(
   '/health',
@@ -1175,17 +1210,26 @@ app.get(
 
       ok: true,
 
-      servicio: 'TV Digital'
+      firebase:
+        !!db,
+
+      mercadopago:
+        !!ACCESS_TOKEN,
+
+      mailjet:
+        !!(
+          MAILJET_API_KEY &&
+          MAILJET_SECRET_KEY
+        )
 
     });
 
   }
 );
 
-
-// ======================================================
-// INICIAR SERVIDOR
-// ======================================================
+/* =========================================================
+   INICIAR SERVIDOR
+========================================================= */
 
 app.listen(
   PORT,
