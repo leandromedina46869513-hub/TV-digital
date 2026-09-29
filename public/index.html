@@ -1264,7 +1264,7 @@ Entretenimiento digital en un solo lugar.
 </div>
 
 <script>
-let calificacionSeleccionada = 0;
+     let calificacionSeleccionada = 0;
 
 const estrellas =
   document.querySelectorAll('#rating-stars span');
@@ -1283,7 +1283,7 @@ const listaComentarios =
 
 
 /* =========================================================
-   SELECCIÓN DE ESTRELLAS
+   ESTRELLAS
 ========================================================= */
 
 estrellas.forEach(function(estrella) {
@@ -1298,18 +1298,10 @@ estrellas.forEach(function(estrella) {
       const numero =
         Number(e.dataset.rating);
 
-      if (
-        numero <=
-        calificacionSeleccionada
-      ) {
-
-        e.textContent = '★';
-
-      } else {
-
-        e.textContent = '☆';
-
-      }
+      e.textContent =
+        numero <= calificacionSeleccionada
+          ? '★'
+          : '☆';
 
     });
 
@@ -1319,19 +1311,17 @@ estrellas.forEach(function(estrella) {
 
 
 /* =========================================================
-   MOSTRAR UNA OPINIÓN
+   MOSTRAR COMENTARIO
 ========================================================= */
 
 function mostrarOpinion(opinion, primero = false) {
 
-  const nuevaOpinion =
+  const tarjeta =
     document.createElement('div');
 
-  nuevaOpinion.className =
+  tarjeta.className =
     'card review';
 
-
-  /* Estrellas */
 
   const estrellasDiv =
     document.createElement('div');
@@ -1354,16 +1344,12 @@ function mostrarOpinion(opinion, primero = false) {
     estrellasHTML;
 
 
-  /* Nombre */
-
   const nombre =
     document.createElement('strong');
 
   nombre.textContent =
     opinion.nombre || 'Cliente';
 
-
-  /* Comentario */
 
   const comentario =
     document.createElement('p');
@@ -1372,15 +1358,15 @@ function mostrarOpinion(opinion, primero = false) {
     opinion.comentario || '';
 
 
-  nuevaOpinion.appendChild(
+  tarjeta.appendChild(
     estrellasDiv
   );
 
-  nuevaOpinion.appendChild(
+  tarjeta.appendChild(
     nombre
   );
 
-  nuevaOpinion.appendChild(
+  tarjeta.appendChild(
     comentario
   );
 
@@ -1398,14 +1384,14 @@ function mostrarOpinion(opinion, primero = false) {
   if (primero) {
 
     listaComentarios.insertBefore(
-      nuevaOpinion,
+      tarjeta,
       listaComentarios.firstChild
     );
 
   } else {
 
     listaComentarios.appendChild(
-      nuevaOpinion
+      tarjeta
     );
 
   }
@@ -1414,20 +1400,31 @@ function mostrarOpinion(opinion, primero = false) {
 
 
 /* =========================================================
-   CARGAR OPINIONES DESDE FIREBASE
+   CARGAR COMENTARIOS
 ========================================================= */
 
 async function cargarOpiniones() {
 
   try {
 
+    console.log(
+      'Cargando comentarios desde Firebase...'
+    );
+
     const respuesta =
-      await fetch('/api/reviews');
+      await fetch(
+        '/api/reviews'
+      );
+
+    console.log(
+      'Respuesta /api/reviews:',
+      respuesta.status
+    );
 
     if (!respuesta.ok) {
 
       throw new Error(
-        'No se pudieron cargar las opiniones.'
+        'Error al cargar comentarios.'
       );
 
     }
@@ -1435,11 +1432,11 @@ async function cargarOpiniones() {
     const opiniones =
       await respuesta.json();
 
+    console.log(
+      'Comentarios recibidos:',
+      opiniones
+    );
 
-    /*
-      Limpiamos la lista actual
-      antes de cargar las opiniones.
-    */
 
     listaComentarios.innerHTML = '';
 
@@ -1478,7 +1475,7 @@ async function cargarOpiniones() {
   } catch (error) {
 
     console.error(
-      'Error cargando opiniones:',
+      'Error cargando comentarios:',
       error
     );
 
@@ -1488,12 +1485,17 @@ async function cargarOpiniones() {
 
 
 /* =========================================================
-   PUBLICAR OPINIÓN
+   PUBLICAR COMENTARIO
 ========================================================= */
 
 botonPublicar.addEventListener(
   'click',
   async function() {
+
+    console.log(
+      'BOTÓN PUBLICAR PRESIONADO'
+    );
+
 
     const nombre =
       nombreInput.value.trim();
@@ -1539,11 +1541,6 @@ botonPublicar.addEventListener(
     }
 
 
-    /*
-      Desactivamos el botón mientras
-      se guarda la opinión.
-    */
-
     botonPublicar.disabled = true;
 
     botonPublicar.textContent =
@@ -1551,6 +1548,11 @@ botonPublicar.addEventListener(
 
 
     try {
+
+      console.log(
+        'Enviando comentario al servidor...'
+      );
+
 
       const respuesta =
         await fetch(
@@ -1584,32 +1586,37 @@ botonPublicar.addEventListener(
         );
 
 
+      console.log(
+        'Respuesta del servidor:',
+        respuesta.status
+      );
+
+
       const datos =
         await respuesta.json();
+
+
+      console.log(
+        'Datos recibidos:',
+        datos
+      );
 
 
       if (!respuesta.ok) {
 
         throw new Error(
           datos.error ||
-          'No se pudo publicar la opinión.'
+          'No se pudo publicar el comentario.'
         );
 
       }
 
-
-      /*
-        Mostramos inmediatamente
-        la opinión recién guardada.
-      */
 
       mostrarOpinion(
         datos,
         true
       );
 
-
-      /* Limpiar formulario */
 
       nombreInput.value = '';
 
@@ -1633,13 +1640,13 @@ botonPublicar.addEventListener(
     } catch (error) {
 
       console.error(
-        'Error publicando opinión:',
+        'ERROR PUBLICANDO:',
         error
       );
 
       alert(
-        error.message ||
-        'No se pudo publicar la opinión. Intentá nuevamente.'
+        'Error: ' +
+        error.message
       );
 
 
@@ -1657,7 +1664,7 @@ botonPublicar.addEventListener(
 
 
 /* =========================================================
-   CARGAR OPINIONES AL ABRIR LA PÁGINA
+   INICIAR
 ========================================================= */
 
 cargarOpiniones();
