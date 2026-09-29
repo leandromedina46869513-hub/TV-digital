@@ -1266,26 +1266,51 @@ Entretenimiento digital en un solo lugar.
 <script>
 let calificacionSeleccionada = 0;
 
-const estrellas = document.querySelectorAll('#rating-stars span');
-const botonPublicar = document.getElementById('publish-review');
-const nombreInput = document.getElementById('review-name');
-const comentarioInput = document.getElementById('review-text');
-const listaComentarios = document.getElementById('review-list');
+const estrellas =
+  document.querySelectorAll('#rating-stars span');
+
+const botonPublicar =
+  document.getElementById('publish-review');
+
+const nombreInput =
+  document.getElementById('review-name');
+
+const comentarioInput =
+  document.getElementById('review-text');
+
+const listaComentarios =
+  document.getElementById('review-list');
+
+
+/* =========================================================
+   SELECCIÓN DE ESTRELLAS
+========================================================= */
 
 estrellas.forEach(function(estrella) {
 
   estrella.addEventListener('click', function() {
 
-    calificacionSeleccionada = Number(this.dataset.rating);
+    calificacionSeleccionada =
+      Number(this.dataset.rating);
 
     estrellas.forEach(function(e) {
-      const numero = Number(e.dataset.rating);
 
-      if (numero <= calificacionSeleccionada) {
+      const numero =
+        Number(e.dataset.rating);
+
+      if (
+        numero <=
+        calificacionSeleccionada
+      ) {
+
         e.textContent = '★';
+
       } else {
+
         e.textContent = '☆';
+
       }
+
     });
 
   });
@@ -1293,67 +1318,349 @@ estrellas.forEach(function(estrella) {
 });
 
 
-botonPublicar.addEventListener('click', function() {
+/* =========================================================
+   MOSTRAR UNA OPINIÓN
+========================================================= */
 
-  const nombre = nombreInput.value.trim();
-  const comentario = comentarioInput.value.trim();
+function mostrarOpinion(opinion, primero = false) {
 
-  if (!nombre) {
-    alert('Ingresá tu nombre.');
-    nombreInput.focus();
-    return;
-  }
+  const nuevaOpinion =
+    document.createElement('div');
 
-  if (!calificacionSeleccionada) {
-    alert('Seleccioná una calificación de 1 a 5 estrellas.');
-    return;
-  }
-
-  if (!comentario) {
-    alert('Escribí un comentario.');
-    comentarioInput.focus();
-    return;
-  }
+  nuevaOpinion.className =
+    'card review';
 
 
-  const nuevaOpinion = document.createElement('div');
+  /* Estrellas */
 
-  nuevaOpinion.className = 'card review';
+  const estrellasDiv =
+    document.createElement('div');
+
+  estrellasDiv.className =
+    'stars-small';
 
   let estrellasHTML = '';
 
   for (let i = 1; i <= 5; i++) {
-    estrellasHTML += i <= calificacionSeleccionada ? '★' : '☆';
+
+    estrellasHTML +=
+      i <= Number(opinion.calificacion)
+        ? '★'
+        : '☆';
+
   }
 
-  nuevaOpinion.innerHTML = `
-    <div class="stars-small">${estrellasHTML}</div>
-    <strong>${nombre}</strong>
-    <p>${comentario}</p>
-  `;
+  estrellasDiv.textContent =
+    estrellasHTML;
 
-  const mensajeVacio = listaComentarios.querySelector('.empty');
 
-if (mensajeVacio) {
-  mensajeVacio.parentElement.remove();
+  /* Nombre */
+
+  const nombre =
+    document.createElement('strong');
+
+  nombre.textContent =
+    opinion.nombre || 'Cliente';
+
+
+  /* Comentario */
+
+  const comentario =
+    document.createElement('p');
+
+  comentario.textContent =
+    opinion.comentario || '';
+
+
+  nuevaOpinion.appendChild(
+    estrellasDiv
+  );
+
+  nuevaOpinion.appendChild(
+    nombre
+  );
+
+  nuevaOpinion.appendChild(
+    comentario
+  );
+
+
+  const mensajeVacio =
+    listaComentarios.querySelector('.empty');
+
+  if (mensajeVacio) {
+
+    mensajeVacio.parentElement.remove();
+
+  }
+
+
+  if (primero) {
+
+    listaComentarios.insertBefore(
+      nuevaOpinion,
+      listaComentarios.firstChild
+    );
+
+  } else {
+
+    listaComentarios.appendChild(
+      nuevaOpinion
+    );
+
+  }
+
 }
 
-listaComentarios.insertBefore(
-  nuevaOpinion,
-  listaComentarios.firstChild
+
+/* =========================================================
+   CARGAR OPINIONES DESDE FIREBASE
+========================================================= */
+
+async function cargarOpiniones() {
+
+  try {
+
+    const respuesta =
+      await fetch('/api/reviews');
+
+    if (!respuesta.ok) {
+
+      throw new Error(
+        'No se pudieron cargar las opiniones.'
+      );
+
+    }
+
+    const opiniones =
+      await respuesta.json();
+
+
+    /*
+      Limpiamos la lista actual
+      antes de cargar las opiniones.
+    */
+
+    listaComentarios.innerHTML = '';
+
+
+    if (
+      !Array.isArray(opiniones) ||
+      opiniones.length === 0
+    ) {
+
+      listaComentarios.innerHTML = `
+
+        <div class="card review">
+
+          <div class="empty">
+            Sé el primero en dejar tu opinión.
+          </div>
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+
+    opiniones.forEach(function(opinion) {
+
+      mostrarOpinion(
+        opinion,
+        false
+      );
+
+    });
+
+  } catch (error) {
+
+    console.error(
+      'Error cargando opiniones:',
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   PUBLICAR OPINIÓN
+========================================================= */
+
+botonPublicar.addEventListener(
+  'click',
+  async function() {
+
+    const nombre =
+      nombreInput.value.trim();
+
+    const comentario =
+      comentarioInput.value.trim();
+
+
+    if (!nombre) {
+
+      alert(
+        'Ingresá tu nombre.'
+      );
+
+      nombreInput.focus();
+
+      return;
+
+    }
+
+
+    if (!calificacionSeleccionada) {
+
+      alert(
+        'Seleccioná una calificación de 1 a 5 estrellas.'
+      );
+
+      return;
+
+    }
+
+
+    if (!comentario) {
+
+      alert(
+        'Escribí un comentario.'
+      );
+
+      comentarioInput.focus();
+
+      return;
+
+    }
+
+
+    /*
+      Desactivamos el botón mientras
+      se guarda la opinión.
+    */
+
+    botonPublicar.disabled = true;
+
+    botonPublicar.textContent =
+      'PUBLICANDO...';
+
+
+    try {
+
+      const respuesta =
+        await fetch(
+          '/api/reviews',
+          {
+
+            method: 'POST',
+
+            headers: {
+
+              'Content-Type':
+                'application/json'
+
+            },
+
+            body:
+              JSON.stringify({
+
+                nombre:
+                  nombre,
+
+                calificacion:
+                  calificacionSeleccionada,
+
+                comentario:
+                  comentario
+
+              })
+
+          }
+        );
+
+
+      const datos =
+        await respuesta.json();
+
+
+      if (!respuesta.ok) {
+
+        throw new Error(
+          datos.error ||
+          'No se pudo publicar la opinión.'
+        );
+
+      }
+
+
+      /*
+        Mostramos inmediatamente
+        la opinión recién guardada.
+      */
+
+      mostrarOpinion(
+        datos,
+        true
+      );
+
+
+      /* Limpiar formulario */
+
+      nombreInput.value = '';
+
+      comentarioInput.value = '';
+
+      calificacionSeleccionada = 0;
+
+
+      estrellas.forEach(function(e) {
+
+        e.textContent = '☆';
+
+      });
+
+
+      alert(
+        '¡Gracias por dejar tu opinión!'
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        'Error publicando opinión:',
+        error
+      );
+
+      alert(
+        error.message ||
+        'No se pudo publicar la opinión. Intentá nuevamente.'
+      );
+
+
+    } finally {
+
+      botonPublicar.disabled = false;
+
+      botonPublicar.textContent =
+        'PUBLICAR COMENTARIO';
+
+    }
+
+  }
 );
 
 
-  nombreInput.value = '';
-  comentarioInput.value = '';
+/* =========================================================
+   CARGAR OPINIONES AL ABRIR LA PÁGINA
+========================================================= */
 
-  calificacionSeleccionada = 0;
-
-  estrellas.forEach(function(e) {
-    e.textContent = '☆';
-  });
-
-  alert('¡Gracias por dejar tu opinión!');
+cargarOpiniones();
 
 });
 </script>
