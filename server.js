@@ -47,17 +47,20 @@ const CONFIG = {
 
 const PORT = process.env.PORT || 3000;
 
-const ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
-const BASE_URL = process.env.BASE_URL;
+const ACCESS_TOKEN =
+  process.env.MP_ACCESS_TOKEN;
 
-const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const BASE_URL =
+  process.env.BASE_URL;
 
-const SENDLIB_API_KEY = process.env.SENDLIB_API_KEY;
-const SENDLIB_TEST_KEY = process.env.SENDLIB_TEST_KEY;
+const SENDLIB_API_KEY =
+  process.env.SENDLIB_API_KEY;
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+const ADMIN_EMAIL =
+  process.env.ADMIN_EMAIL;
 
-const FROM_EMAIL = 'Tvdigitalnotificaciones@gmail.com';
+const FROM_EMAIL =
+  'digitaltv092@gmail.com';
 
 const FIREBASE_DATABASE_URL =
   process.env.FIREBASE_DATABASE_URL;
@@ -79,14 +82,18 @@ try {
   ) {
 
     const serviceAccount =
-      JSON.parse(FIREBASE_SERVICE_ACCOUNT);
+      JSON.parse(
+        FIREBASE_SERVICE_ACCOUNT
+      );
 
     if (!admin.apps.length) {
 
       admin.initializeApp({
 
         credential:
-          admin.credential.cert(serviceAccount),
+          admin.credential.cert(
+            serviceAccount
+          ),
 
         databaseURL:
           FIREBASE_DATABASE_URL
@@ -144,27 +151,35 @@ const plans = {
 
 };
 
-const discounts = CONFIG.descuentos;
+const discounts =
+  CONFIG.descuentos;
 
-const processedPayments = new Set();
+const processedPayments =
+  new Set();
 
 /* =========================================================
    CONFIGURACIÓN PARA FRONTEND
 ========================================================= */
 
-app.get('/api/config', (req, res) => {
+app.get(
+  '/api/config',
+  (req, res) => {
 
-  res.json({
+    res.json({
 
-    precios: CONFIG.precios,
+      precios:
+        CONFIG.precios,
 
-    descuentos: CONFIG.descuentos,
+      descuentos:
+        CONFIG.descuentos,
 
-    downloader: CONFIG.downloader
+      downloader:
+        CONFIG.downloader
 
-  });
+    });
 
-});
+  }
+);
 
 /* =========================================================
    CREAR PREFERENCIA MERCADO PAGO
@@ -184,8 +199,10 @@ app.post(
       if (!ACCESS_TOKEN) {
 
         return res.status(500).json({
+
           error:
             'Mercado Pago no está configurado.'
+
         });
 
       }
@@ -193,8 +210,10 @@ app.post(
       if (!BASE_URL) {
 
         return res.status(500).json({
+
           error:
             'BASE_URL no está configurado.'
+
         });
 
       }
@@ -214,21 +233,26 @@ app.post(
       if (!selectedPlan) {
 
         return res.status(400).json({
+
           error:
             'Plan inválido.'
+
         });
 
       }
 
       if (
-        !discounts.hasOwnProperty(
+        !Object.prototype.hasOwnProperty.call(
+          discounts,
           selectedMonths
         )
       ) {
 
         return res.status(400).json({
+
           error:
             'Cantidad de meses inválida.'
+
         });
 
       }
@@ -239,8 +263,10 @@ app.post(
       ) {
 
         return res.status(400).json({
+
           error:
             'Email inválido.'
+
         });
 
       }
@@ -277,8 +303,10 @@ app.post(
 
       const client =
         new MercadoPagoConfig({
+
           accessToken:
             ACCESS_TOKEN
+
         });
 
       const preference =
@@ -424,7 +452,7 @@ app.post(
 );
 
 /* =========================================================
-   BREVO
+   SENDLIB
 ========================================================= */
 
 async function enviarCorreo({
@@ -433,30 +461,27 @@ async function enviarCorreo({
   html
 }) {
 
-  if (!BREVO_API_KEY) {
+  if (!SENDLIB_API_KEY) {
 
     throw new Error(
-      'Brevo no está configurado.'
+      'Sendlib no está configurado.'
     );
 
   }
 
   const respuesta =
     await fetch(
-      'https://api.brevo.com/v3/smtp/email',
+      'https://sendlib.samueltuoyo.com/api/send',
       {
 
         method: 'POST',
 
         headers: {
 
-          'api-key':
-            BREVO_API_KEY,
+          'Authorization':
+            `Bearer ${SENDLIB_API_KEY}`,
 
           'Content-Type':
-            'application/json',
-
-          'Accept':
             'application/json'
 
         },
@@ -464,31 +489,16 @@ async function enviarCorreo({
         body:
           JSON.stringify({
 
-            sender: {
+            from:
+              `"TV Digital" <${FROM_EMAIL}>`,
 
-              email:
-                FROM_EMAIL,
-
-              name:
-                'TV Digital'
-
-            },
-
-            to: [
-
-              {
-
-                email:
-                  destinatario
-
-              }
-
-            ],
+            to:
+              destinatario,
 
             subject:
               asunto,
 
-            htmlContent:
+            html:
               html
 
           })
@@ -499,10 +509,16 @@ async function enviarCorreo({
   const texto =
     await respuesta.text();
 
+  console.log(
+    'Respuesta Sendlib:',
+    respuesta.status,
+    texto
+  );
+
   if (!respuesta.ok) {
 
     throw new Error(
-      `Brevo error ${respuesta.status}: ${texto}`
+      `Sendlib error ${respuesta.status}: ${texto}`
     );
 
   }
@@ -510,167 +526,6 @@ async function enviarCorreo({
   return texto;
 
 }
-
-/* =========================================================
-   PRUEBA SENDLIB - TEMPORAL
-========================================================= */
-
-app.get(
-  '/api/test-sendlib',
-  async (req, res) => {
-
-    try {
-
-      if (!SENDLIB_API_KEY) {
-
-        return res.status(500).json({
-
-          error:
-            'SENDLIB_API_KEY no está configurada.'
-
-        });
-
-      }
-
-      if (!SENDLIB_TEST_KEY) {
-
-        return res.status(500).json({
-
-          error:
-            'SENDLIB_TEST_KEY no está configurada.'
-
-        });
-
-      }
-
-      if (
-        req.query.key !==
-        SENDLIB_TEST_KEY
-      ) {
-
-        return res.status(403).json({
-
-          error:
-            'Clave de prueba incorrecta.'
-
-        });
-
-      }
-
-      console.log(
-        'Iniciando prueba de envío con Sendlib...'
-      );
-
-      const respuesta =
-        await fetch(
-          'https://sendlib.samueltuoyo.com/api/send',
-          {
-
-            method: 'POST',
-
-            headers: {
-
-              'Authorization':
-                `Bearer ${SENDLIB_API_KEY}`,
-
-              'Content-Type':
-                'application/json'
-
-            },
-
-            body:
-              JSON.stringify({
-
-                from:
-                  '"TV Digital" <digitaltv092@gmail.com>',
-
-                to:
-                  'tvdigitalnotificaciones@gmail.com',
-
-                subject:
-                  'Prueba de correo - TV Digital',
-
-                html:
-                  `
-                  <h2>📺 Prueba TV Digital</h2>
-
-                  <p>
-                    Este es un correo de prueba
-                    enviado desde Sendlib.
-                  </p>
-
-                  <p>
-                    Si recibís este mensaje,
-                    Sendlib está funcionando
-                    correctamente con TV Digital.
-                  </p>
-                  `
-
-              })
-
-          }
-        );
-
-      const texto =
-        await respuesta.text();
-
-      console.log(
-        'Respuesta Sendlib:',
-        respuesta.status,
-        texto
-      );
-
-      if (!respuesta.ok) {
-
-        return res.status(500).json({
-
-          ok: false,
-
-          error:
-            'Sendlib rechazó el envío.',
-
-          status:
-            respuesta.status,
-
-          respuesta:
-            texto
-
-        });
-
-      }
-
-      return res.json({
-
-        ok: true,
-
-        mensaje:
-          'Sendlib aceptó el correo.',
-
-        respuesta:
-          texto
-
-      });
-
-    } catch (error) {
-
-      console.error(
-        'Error en prueba Sendlib:',
-        error
-      );
-
-      return res.status(500).json({
-
-        ok: false,
-
-        error:
-          error.message
-
-      });
-
-    }
-
-  }
-);
 
 /* =========================================================
    WEBHOOK MERCADO PAGO
@@ -693,6 +548,11 @@ app.post(
       'Query:',
       req.query
     );
+
+    /*
+      Mercado Pago necesita recibir rápidamente
+      una respuesta 200.
+    */
 
     res.sendStatus(200);
 
@@ -756,10 +616,10 @@ app.post(
 
       }
 
-      if (!BREVO_API_KEY) {
+      if (!SENDLIB_API_KEY) {
 
         console.error(
-          'Brevo no configurado.'
+          'SENDLIB_API_KEY no configurada.'
         );
 
         return;
@@ -911,7 +771,7 @@ app.post(
       );
 
       /* =====================================================
-         GUARDAR TAMBIÉN LA COMPRA EN FIREBASE
+         GUARDAR COMPRA EN FIREBASE
       ===================================================== */
 
       if (db) {
@@ -1356,9 +1216,6 @@ app.get(
 
       mercadopago:
         !!ACCESS_TOKEN,
-
-      brevo:
-        !!BREVO_API_KEY,
 
       sendlib:
         !!SENDLIB_API_KEY
