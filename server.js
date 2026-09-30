@@ -50,11 +50,15 @@ const PORT = process.env.PORT || 3000;
 const ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
 const BASE_URL = process.env.BASE_URL;
 
-const MAILJET_API_KEY = process.env.MAILJET_API_KEY;
-const MAILJET_SECRET_KEY = process.env.MAILJET_SECRET_KEY;
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-const FROM_EMAIL = process.env.ADMIN_EMAIL;
+
+/*
+  Este será el correo que aparecerá como remitente
+  de los mensajes enviados desde Brevo.
+*/
+const FROM_EMAIL = 'Tvdigitalnotificaciones@gmail.com';
 
 const FIREBASE_DATABASE_URL =
   process.env.FIREBASE_DATABASE_URL;
@@ -419,7 +423,7 @@ app.post(
 );
 
 /* =========================================================
-   MAILJET
+   BREVO
 ========================================================= */
 
 async function enviarCorreo({
@@ -428,35 +432,30 @@ async function enviarCorreo({
   html
 }) {
 
-  if (
-    !MAILJET_API_KEY ||
-    !MAILJET_SECRET_KEY
-  ) {
+  if (!BREVO_API_KEY) {
 
     throw new Error(
-      'Mailjet no está configurado.'
+      'Brevo no está configurado.'
     );
 
   }
 
-  const credenciales =
-    Buffer.from(
-      `${MAILJET_API_KEY}:${MAILJET_SECRET_KEY}`
-    ).toString('base64');
-
   const respuesta =
     await fetch(
-      'https://api.mailjet.com/v3.1/send',
+      'https://api.brevo.com/v3/smtp/email',
       {
 
         method: 'POST',
 
         headers: {
 
-          'Authorization':
-            `Basic ${credenciales}`,
+          'api-key':
+            BREVO_API_KEY,
 
           'Content-Type':
+            'application/json',
+
+          'Accept':
             'application/json'
 
         },
@@ -464,40 +463,32 @@ async function enviarCorreo({
         body:
           JSON.stringify({
 
-            Messages: [
+            sender: {
+
+              email:
+                FROM_EMAIL,
+
+              name:
+                'TV Digital'
+
+            },
+
+            to: [
 
               {
 
-                From: {
-
-                  Email:
-                    FROM_EMAIL,
-
-                  Name:
-                    'TV Digital'
-
-                },
-
-                To: [
-
-                  {
-
-                    Email:
-                      destinatario
-
-                  }
-
-                ],
-
-                Subject:
-                  asunto,
-
-                HTMLPart:
-                  html
+                email:
+                  destinatario
 
               }
 
-            ]
+            ],
+
+            subject:
+              asunto,
+
+            htmlContent:
+              html
 
           })
 
@@ -510,7 +501,7 @@ async function enviarCorreo({
   if (!respuesta.ok) {
 
     throw new Error(
-      `Mailjet error ${respuesta.status}: ${texto}`
+      `Brevo error ${respuesta.status}: ${texto}`
     );
 
   }
@@ -608,13 +599,10 @@ app.post(
 
       }
 
-      if (
-        !MAILJET_API_KEY ||
-        !MAILJET_SECRET_KEY
-      ) {
+      if (!BREVO_API_KEY) {
 
         console.error(
-          'Mailjet no configurado.'
+          'Brevo no configurado.'
         );
 
         return;
@@ -860,7 +848,8 @@ app.post(
         </p>
 
         <p>
-          El pago fue aprobado correctamente.
+          <strong>Estado:</strong>
+          Pago aprobado correctamente.
         </p>
 
       `;
@@ -1118,11 +1107,6 @@ app.post(
 
       }
 
-      /*
-        Límites para evitar entradas
-        exageradamente grandes.
-      */
-
       if (nombre.length > 60) {
 
         return res.status(400).json({
@@ -1216,11 +1200,8 @@ app.get(
       mercadopago:
         !!ACCESS_TOKEN,
 
-      mailjet:
-        !!(
-          MAILJET_API_KEY &&
-          MAILJET_SECRET_KEY
-        )
+      brevo:
+        !!BREVO_API_KEY
 
     });
 
