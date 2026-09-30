@@ -52,12 +52,11 @@ const BASE_URL = process.env.BASE_URL;
 
 const BREVO_API_KEY = process.env.BREVO_API_KEY;
 
+const SENDLIB_API_KEY = process.env.SENDLIB_API_KEY;
+const SENDLIB_TEST_KEY = process.env.SENDLIB_TEST_KEY;
+
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 
-/*
-  Este será el correo que aparecerá como remitente
-  de los mensajes enviados desde Brevo.
-*/
 const FROM_EMAIL = 'Tvdigitalnotificaciones@gmail.com';
 
 const FIREBASE_DATABASE_URL =
@@ -85,11 +84,13 @@ try {
     if (!admin.apps.length) {
 
       admin.initializeApp({
+
         credential:
           admin.credential.cert(serviceAccount),
 
         databaseURL:
           FIREBASE_DATABASE_URL
+
       });
 
     }
@@ -511,6 +512,167 @@ async function enviarCorreo({
 }
 
 /* =========================================================
+   PRUEBA SENDLIB - TEMPORAL
+========================================================= */
+
+app.get(
+  '/api/test-sendlib',
+  async (req, res) => {
+
+    try {
+
+      if (!SENDLIB_API_KEY) {
+
+        return res.status(500).json({
+
+          error:
+            'SENDLIB_API_KEY no está configurada.'
+
+        });
+
+      }
+
+      if (!SENDLIB_TEST_KEY) {
+
+        return res.status(500).json({
+
+          error:
+            'SENDLIB_TEST_KEY no está configurada.'
+
+        });
+
+      }
+
+      if (
+        req.query.key !==
+        SENDLIB_TEST_KEY
+      ) {
+
+        return res.status(403).json({
+
+          error:
+            'Clave de prueba incorrecta.'
+
+        });
+
+      }
+
+      console.log(
+        'Iniciando prueba de envío con Sendlib...'
+      );
+
+      const respuesta =
+        await fetch(
+          'https://sendlib.samueltuoyo.com/api/send',
+          {
+
+            method: 'POST',
+
+            headers: {
+
+              'Authorization':
+                `Bearer ${SENDLIB_API_KEY}`,
+
+              'Content-Type':
+                'application/json'
+
+            },
+
+            body:
+              JSON.stringify({
+
+                from:
+                  '"TV Digital" <digitaltv092@gmail.com>',
+
+                to:
+                  'tvdigitalnotificaciones@gmail.com',
+
+                subject:
+                  'Prueba de correo - TV Digital',
+
+                html:
+                  `
+                  <h2>📺 Prueba TV Digital</h2>
+
+                  <p>
+                    Este es un correo de prueba
+                    enviado desde Sendlib.
+                  </p>
+
+                  <p>
+                    Si recibís este mensaje,
+                    Sendlib está funcionando
+                    correctamente con TV Digital.
+                  </p>
+                  `
+
+              })
+
+          }
+        );
+
+      const texto =
+        await respuesta.text();
+
+      console.log(
+        'Respuesta Sendlib:',
+        respuesta.status,
+        texto
+      );
+
+      if (!respuesta.ok) {
+
+        return res.status(500).json({
+
+          ok: false,
+
+          error:
+            'Sendlib rechazó el envío.',
+
+          status:
+            respuesta.status,
+
+          respuesta:
+            texto
+
+        });
+
+      }
+
+      return res.json({
+
+        ok: true,
+
+        mensaje:
+          'Sendlib aceptó el correo.',
+
+        respuesta:
+          texto
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        'Error en prueba Sendlib:',
+        error
+      );
+
+      return res.status(500).json({
+
+        ok: false,
+
+        error:
+          error.message
+
+      });
+
+    }
+
+  }
+);
+
+/* =========================================================
    WEBHOOK MERCADO PAGO
 ========================================================= */
 
@@ -531,11 +693,6 @@ app.post(
       'Query:',
       req.query
     );
-
-    /*
-      Mercado Pago necesita recibir rápidamente
-      una respuesta 200.
-    */
 
     res.sendStatus(200);
 
@@ -1201,7 +1358,10 @@ app.get(
         !!ACCESS_TOKEN,
 
       brevo:
-        !!BREVO_API_KEY
+        !!BREVO_API_KEY,
+
+      sendlib:
+        !!SENDLIB_API_KEY
 
     });
 
