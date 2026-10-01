@@ -26,7 +26,7 @@ app.get('/', (req, res) => {
 
 const CONFIG = {
   precios: {
-    comun: 1,
+    comun: 7000,
     pareja: 10000,
     familiar: 15000
   },
