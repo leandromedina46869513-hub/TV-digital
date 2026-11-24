@@ -45,9 +45,9 @@ app.get('/', (req, res) => {
 
 const CONFIG = {
   precios: {
-    comun: 7000,
-    pareja: 10000,
-    familiar: 15000
+    comun: 9000,
+    pareja: 12000,
+    familiar: 17000
   },
 
   descuentos: {
