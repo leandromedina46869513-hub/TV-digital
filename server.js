@@ -19,7 +19,7 @@ app.get('/robots.txt', (req, res) => {
   res.type('text/plain').send(
 `User-agent: *
 Allow: /
-Sitemap: https://tv-digital.onrender.com/sitemap.xml`
+Sitemap: https://tvdigital-oficial.site/sitemap.xml`
   );
 });
 
@@ -45,9 +45,9 @@ app.get('/', (req, res) => {
 
 const CONFIG = {
   precios: {
-    comun: 9000,
-    pareja: 12000,
-    familiar: 17000
+    comun: 7000,
+    pareja: 10000,
+    familiar: 15000
   },
   descuentos: {
     1: 0,
@@ -55,7 +55,7 @@ const CONFIG = {
     6: 0.20,
     12: 0.35
   },
-  downloader: '8894319'
+  downloader: '6590043'
 };
 
 /* =========================================================
@@ -65,9 +65,9 @@ const CONFIG = {
 const PORT = process.env.PORT || 3000;
 const ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
 const BASE_URL = process.env.BASE_URL;
-const SENDLIB_API_KEY = process.env.SENDLIB_API_KEY;
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-const FROM_EMAIL = 'digitaltv092@gmail.com';
+const FROM_EMAIL = 'TV Digital <notificaciones@tvdigital-oficial.site>';
 const FIREBASE_DATABASE_URL = process.env.FIREBASE_DATABASE_URL;
 const FIREBASE_SERVICE_ACCOUNT = process.env.FIREBASE_SERVICE_ACCOUNT;
 
@@ -250,40 +250,40 @@ app.post('/api/create-preference', async (req, res) => {
 });
 
 /* =========================================================
-   SENDLIB
+   ENVÍO DE CORREOS CON RESEND
 ========================================================= */
 
 async function enviarCorreo({ destinatario, asunto, html }) {
-  if (!SENDLIB_API_KEY) {
-    throw new Error('Sendlib no está configurado.');
+  if (!RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY no está configurada.');
   }
 
-  const respuesta = await fetch(
-    'https://sendlib.samueltuoyo.com/api/send',
-    {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${SENDLIB_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: `"TV Digital" <${FROM_EMAIL}>`,
-        to: destinatario,
-        subject: asunto,
-        html: html
-      })
-    }
-  );
+  if (!destinatario) {
+    throw new Error('No se indicó el destinatario del correo.');
+  }
 
-  const texto = await respuesta.text();
+  const respuesta = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${RESEND_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      from: FROM_EMAIL,
+      to: [destinatario],
+      subject: asunto,
+      html
+    })
+  });
 
-  console.log('Respuesta Sendlib:', respuesta.status, texto);
+  const resultado = await respuesta.text();
+  console.log('Respuesta Resend:', respuesta.status, resultado);
 
   if (!respuesta.ok) {
-    throw new Error(`Sendlib error ${respuesta.status}: ${texto}`);
+    throw new Error(`Resend error ${respuesta.status}: ${resultado}`);
   }
 
-  return texto;
+  return resultado;
 }
 
 /* =========================================================
@@ -295,10 +295,6 @@ app.post('/api/webhook', async (req, res) => {
   console.log('Body:', req.body);
   console.log('Query:', req.query);
 
-  /*
-    Mercado Pago necesita recibir rápidamente
-    una respuesta 200.
-  */
   res.sendStatus(200);
 
   try {
@@ -329,8 +325,8 @@ app.post('/api/webhook', async (req, res) => {
       return;
     }
 
-    if (!SENDLIB_API_KEY) {
-      console.error('SENDLIB_API_KEY no configurada.');
+    if (!RESEND_API_KEY) {
+      console.error('RESEND_API_KEY no configurada.');
       return;
     }
 
@@ -602,7 +598,7 @@ app.get('/health', (req, res) => {
     ok: true,
     firebase: !!db,
     mercadopago: !!ACCESS_TOKEN,
-    sendlib: !!SENDLIB_API_KEY
+    resend: !!RESEND_API_KEY
   });
 });
 
